@@ -49,7 +49,7 @@ public class SaviorRitual extends Ritual {
         blocks.add(new BlockRequirement(new BlockPos(0, 0, -1), state -> state.is(Blocks.TORCH) || state.is(Blocks.WALL_TORCH)));
         blocks.add(new BlockRequirement(new BlockPos(0, 0, 1), state -> state.is(Blocks.TORCH) || state.is(Blocks.WALL_TORCH)));
 
-        patterns.add(new StructurePattern(blocks, new BlockPos(0, -1, 0)));
+        patterns.add(new StructurePattern(blocks, new BlockPos(0, 0, 0)));
 
         return patterns;
     }

@@ -50,7 +50,7 @@ public class AuthorRitual extends Ritual {
         blocks.add(new BlockRequirement(new BlockPos(0, 0, -1), state -> state.is(Blocks.ENCHANTING_TABLE)));
         blocks.add(new BlockRequirement(new BlockPos(0, 0, 1), state -> state.is(Blocks.ENCHANTING_TABLE)));
 
-        patterns.add(new StructurePattern(blocks, new BlockPos(0, -1, 0)));
+        patterns.add(new StructurePattern(blocks, new BlockPos(0, 0, 0)));
 
         return patterns;
     }

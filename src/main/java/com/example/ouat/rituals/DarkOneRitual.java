@@ -56,7 +56,7 @@ public class DarkOneRitual extends Ritual {
         blocks.add(new BlockRequirement(new BlockPos(0, 0, -1), state -> state.is(Blocks.REDSTONE_TORCH) || state.is(Blocks.REDSTONE_WALL_TORCH)));
         blocks.add(new BlockRequirement(new BlockPos(0, 0, 1), state -> state.is(Blocks.REDSTONE_TORCH) || state.is(Blocks.REDSTONE_WALL_TORCH)));
 
-        patterns.add(new StructurePattern(blocks, new BlockPos(0, -1, 0)));
+        patterns.add(new StructurePattern(blocks, new BlockPos(0, 0, 0)));
 
         return patterns;
     }
