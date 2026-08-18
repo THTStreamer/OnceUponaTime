@@ -1,0 +1,48 @@
+{
+  "temperature": 0.7,
+  "downfall": 0.7,
+  "has_precipitation": true,
+  "effects": {
+    "sky_color": 8103167,
+    "water_fog_color": 329011,
+    "fog_color": 10092450,
+    "water_color": 4159204,
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    }
+  },
+  "spawners": {
+    "creature": [
+      {
+        "type": "onceuponatime:forest_fairy",
+        "weight": 15,
+        "minCount": 3,
+        "maxCount": 6
+      },
+      {
+        "type": "minecraft:allay",
+        "weight": 10,
+        "minCount": 1,
+        "maxCount": 3
+      }
+    ]
+  },
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ],
+  "monster_spawn_light_level": 7,
+  "monster_spawn_block_light_limit": 0
+}

@@ -1,0 +1,36 @@
+{
+  "type": "onceuponatime:wonderland",
+  "generator": {
+    "type": "minecraft:noise",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "onceuponatime:wonderland_strange",
+          "parameters": {
+            "temperature": 0.5,
+            "humidity": 0.5,
+            "continentalness": 0.3,
+            "erosion": 0.3,
+            "weirdness": 0.8,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "onceuponatime:wonderland_maze",
+          "parameters": {
+            "temperature": 0.6,
+            "humidity": 0.4,
+            "continentalness": 0.2,
+            "erosion": 0.2,
+            "weirdness": 0.9,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        }
+      ]
+    },
+    "settings": "minecraft:overworld"
+  }
+}

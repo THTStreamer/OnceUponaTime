@@ -1,0 +1,55 @@
+{
+  "temperature": 1.0,
+  "downfall": 0.0,
+  "has_precipitation": false,
+  "effects": {
+    "sky_color": 3343107,
+    "water_fog_color": 1776545,
+    "fog_color": 1710618,
+    "water_color": 4341314,
+    "mood_sound": {
+      "sound": "minecraft:ambient.nether_wastes.additions",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    }
+  },
+  "spawners": {
+    "monster": [
+      {
+        "type": "onceuponatime:lost_soul",
+        "weight": 12,
+        "minCount": 2,
+        "maxCount": 4
+      },
+      {
+        "type": "onceuponatime:dark_swarm",
+        "weight": 8,
+        "minCount": 1,
+        "maxCount": 3
+      },
+      {
+        "type": "minecraft:wither_skeleton",
+        "weight": 6,
+        "minCount": 1,
+        "maxCount": 2
+      }
+    ]
+  },
+  "spawn_costs": {},
+  "carvers": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ],
+  "monster_spawn_light_level": 7,
+  "monster_spawn_block_light_limit": 0
+}

@@ -1,0 +1,30 @@
+# Build output
+build/
+out/
+bin/
+
+# Gradle
+.gradle/
+gradle.properties
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+bin/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CurseForge
+META-INF/
+
+# Logs
+*.log
+logs/

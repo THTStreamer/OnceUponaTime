@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "onceuponatime:dark_one_dagger",
+    "onceuponatime:authors_quill",
+    "onceuponatime:authors_book",
+    "onceuponatime:grimoire_light",
+    "onceuponatime:grimoire_dark",
+    "onceuponatime:wand_light",
+    "onceuponatime:wand_dark"
+  ]
+}
