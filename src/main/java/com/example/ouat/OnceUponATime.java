@@ -15,6 +15,7 @@ import com.example.ouat.registry.ModDataComponents;
 import com.example.ouat.registry.ModEntities;
 import com.example.ouat.registry.ModItems;
 import com.example.ouat.registry.ModMenus;
+import com.example.ouat.registry.ModParticles;
 import com.example.ouat.artifacts.ArtifactRegistry;
 import com.example.ouat.dimensions.MagicalPortal;
 import com.example.ouat.ritual.RitualManager;
@@ -53,6 +54,7 @@ public class OnceUponATime {
         ATTACHMENT_TYPES.register(modBus);
         ModEntities.register(modBus);
         ModMenus.register(modBus);
+        ModParticles.register(modBus);
 
         ATTACHMENT_TYPES.register("player_supernatural_data", () -> PlayerSupernaturalData.TYPE);
 
@@ -61,6 +63,7 @@ public class OnceUponATime {
         modBus.addListener(ModItems::addDefaultComponents);
         modBus.addListener(this::onRegisterSpawnPlacements);
         modBus.addListener(this::onEntityAttributes);
+        modBus.addListener(com.example.ouat.particles.ModParticleProviders::register);
 
         NeoForge.EVENT_BUS.addListener(OuATCommands::onCommandsRegister);
         NeoForge.EVENT_BUS.addListener(UniqueRoleRegistry::onServerStarting);

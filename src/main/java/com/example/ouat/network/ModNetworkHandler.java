@@ -26,5 +26,11 @@ public class ModNetworkHandler {
                 RoleRegistrySyncPacket.STREAM_CODEC,
                 RoleRegistrySyncPacket::handle
         );
+
+        registrar.playToClient(
+                PurpleSmokeSpawnPacket.TYPE,
+                PurpleSmokeSpawnPacket.STREAM_CODEC,
+                PurpleSmokeSpawnPacket::handle
+        );
     }
 }
