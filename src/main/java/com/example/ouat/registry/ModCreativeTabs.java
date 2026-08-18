@@ -67,7 +67,7 @@ public class ModCreativeTabs {
                                 output.accept(ModItems.POTION_BREWER.get());
                                 output.accept(ModItems.DARK_CURSE.get());
                                 // Blocks
-                                output.accept(ModBlocks.RITUAL_ALTAR.get());
+                                output.accept(ModItems.RITUAL_ALTAR.get());
                             })
                             .build()
             );

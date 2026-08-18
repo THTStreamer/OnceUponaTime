@@ -2,6 +2,7 @@ package com.example.ouat.registry;
 
 import com.example.ouat.OnceUponATime;
 import com.example.ouat.items.*;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.neoforged.bus.api.IEventBus;
@@ -220,6 +221,11 @@ public class ModItems {
     public static final DeferredItem<Item> DARK_CURSE = ITEMS.registerItem(
             "dark_curse", DarkCurseItem::new,
             new Item.Properties().stacksTo(1).rarity(Rarity.EPIC)
+    );
+
+    public static final DeferredItem<BlockItem> RITUAL_ALTAR = ITEMS.registerSimpleBlockItem(
+            "ritual_altar", ModBlocks.RITUAL_ALTAR,
+            new Item.Properties().rarity(Rarity.EPIC)
     );
 
     public static void addDefaultComponents(ModifyDefaultComponentsEvent event) {
