@@ -123,7 +123,6 @@ public class DarkOneDaggerItem extends Item {
             }
         }
 
-        stack.shrink(2);
         return true;
     }
 

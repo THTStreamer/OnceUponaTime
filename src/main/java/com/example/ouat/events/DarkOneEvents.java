@@ -92,23 +92,36 @@ public class DarkOneEvents {
     @SubscribeEvent
     public static void onLivingHurt(LivingDamageEvent.Pre event) {
         if (!(event.getEntity() instanceof ServerPlayer target)) return;
-        if (!(event.getSource().getEntity() instanceof ServerPlayer attacker)) return;
         if (target.level().isClientSide()) return;
 
         PlayerSupernaturalData targetData = target.getData(PlayerSupernaturalData.TYPE);
-        PlayerSupernaturalData attackerData = attacker.getData(PlayerSupernaturalData.TYPE);
+        if (!DarkOneRole.isDarkOne(targetData)) return;
 
-        if (DarkOneRole.isDarkOne(targetData)) {
-            float damage = event.getNewDamage();
-            if (DarkOneRole.isDarkOne(attackerData)) {
-                event.setNewDamage(damage * 0.5F);
-            } else {
-                event.setNewDamage(damage * 0.75F);
+        net.minecraft.world.entity.Entity damageSourceEntity = event.getSource().getEntity();
+
+        boolean killedByDagger = false;
+        if (damageSourceEntity instanceof ServerPlayer attacker) {
+            for (ItemStack stack : attacker.getInventory().items) {
+                if (stack.is(ModItems.DARK_ONE_DAGGER.value())) {
+                    ModDataComponents.DarkOneDaggerData daggerData = stack.get(ModDataComponents.DARK_ONE_DAGGER.value());
+                    if (daggerData != null && daggerData.isAuthentic()) {
+                        killedByDagger = true;
+                        break;
+                    }
+                }
             }
         }
 
-        if (DarkOneRole.isDarkOne(attackerData)) {
-            event.setNewDamage(event.getNewDamage() * 1.25F);
+        if (!killedByDagger) {
+            event.setNewDamage(0.0F);
+            return;
+        }
+
+        if (damageSourceEntity instanceof ServerPlayer attacker) {
+            PlayerSupernaturalData attackerData = attacker.getData(PlayerSupernaturalData.TYPE);
+            if (DarkOneRole.isDarkOne(attackerData)) {
+                event.setNewDamage(event.getNewDamage() * 1.25F);
+            }
         }
     }
 }
