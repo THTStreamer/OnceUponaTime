@@ -32,5 +32,11 @@ public class ModNetworkHandler {
                 PurpleSmokeSpawnPacket.STREAM_CODEC,
                 PurpleSmokeSpawnPacket::handle
         );
+
+        registrar.playToClient(
+                DarkSmokeSpawnPacket.TYPE,
+                DarkSmokeSpawnPacket.STREAM_CODEC,
+                DarkSmokeSpawnPacket::handle
+        );
     }
 }
