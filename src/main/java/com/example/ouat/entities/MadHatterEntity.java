@@ -14,11 +14,11 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
-public class MadHatterEntity extends Monster {
+public class MadHatterEntity extends Zombie {
 
     @SuppressWarnings("unchecked")
     private static final Holder<MobEffect>[] CHAOS_EFFECTS = new Holder[]{
@@ -37,7 +37,7 @@ public class MadHatterEntity extends Monster {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Monster.createMonsterAttributes()
+        return Zombie.createAttributes()
                 .add(Attributes.MAX_HEALTH, 40.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.3D)
                 .add(Attributes.ATTACK_DAMAGE, 5.0D)

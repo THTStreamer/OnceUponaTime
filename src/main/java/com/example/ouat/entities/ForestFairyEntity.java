@@ -8,7 +8,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.FlyingMoveControl;
@@ -17,7 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 
-public class ForestFairyEntity extends PathfinderMob {
+public class ForestFairyEntity extends Zombie {
 
     public ForestFairyEntity(EntityType<? extends ForestFairyEntity> type, Level level) {
         super(type, level);
@@ -26,7 +26,7 @@ public class ForestFairyEntity extends PathfinderMob {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return PathfinderMob.createMobAttributes()
+        return Zombie.createAttributes()
                 .add(Attributes.MAX_HEALTH, 10.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.25D)
                 .add(Attributes.FLYING_SPEED, 0.4D)
