@@ -77,6 +77,11 @@ public class StolenHeartItem extends Item {
     }
 
     @Override
+    public boolean isFoil(ItemStack stack) {
+        return true;
+    }
+
+    @Override
     public boolean hurtEnemy(ItemStack stack, net.minecraft.world.entity.LivingEntity target, net.minecraft.world.entity.LivingEntity attacker) {
         // Sneak + attack = destroy the heart, freeing the victim
         if (!attacker.level().isClientSide() && attacker instanceof ServerPlayer player) {

@@ -28,7 +28,7 @@ public class ModItems {
     );
 
     public static final DeferredItem<Item> HEART_OF_DARKNESS = ITEMS.registerItem(
-            "heart_of_darkness", Item::new,
+            "heart_of_darkness", HeartItem::new,
             new Item.Properties().stacksTo(1).rarity(Rarity.RARE)
     );
 
@@ -98,7 +98,7 @@ public class ModItems {
     );
 
     public static final DeferredItem<Item> HEART_OF_INNOCENCE = ITEMS.registerItem(
-            "heart_of_innocence", Item::new,
+            "heart_of_innocence", HeartItem::new,
             new Item.Properties().stacksTo(1).rarity(Rarity.RARE)
     );
 
