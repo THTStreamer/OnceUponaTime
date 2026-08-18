@@ -4,13 +4,17 @@ import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.data.PlayerSupernaturalData.PortalLocation;
 import com.example.ouat.magic.Spell;
+import net.minecraft.core.particles.DustColorTransitionOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 
+import java.util.List;
 import java.util.Map;
 
 public class PortalCreation extends Spell {
@@ -116,7 +120,7 @@ public class PortalCreation extends Spell {
         PortalLocation portal = data.getPortal(name);
 
         if (player.level() instanceof ServerLevel serverLevel) {
-            spawnSmokeVortex(serverLevel, player.getX(), player.getY(), player.getZ());
+            spawnSmokeCloud(serverLevel, player.getX(), player.getY(), player.getZ(), player);
         }
 
         player.teleportTo(player.server.getLevel(
@@ -127,7 +131,7 @@ public class PortalCreation extends Spell {
                 player.getYRot(), player.getXRot());
 
         if (player.level() instanceof ServerLevel arrivalLevel) {
-            spawnSmokeVortex(arrivalLevel, player.getX(), player.getY(), player.getZ());
+            spawnSmokeCloud(arrivalLevel, player.getX(), player.getY(), player.getZ(), player);
         }
 
         player.playSound(SoundEvents.ENDERMAN_TELEPORT, 2.0F, 0.5F);
@@ -176,22 +180,68 @@ public class PortalCreation extends Spell {
         player.sendSystemMessage(Component.literal("§7Remove: §e/ouat cast portal_creation remove <name>"));
     }
 
-    private void spawnSmokeVortex(ServerLevel level, double x, double y, double z) {
-        for (int i = 0; i < 60; i++) {
-            double angle = (i / 60.0) * Math.PI * 2;
-            double radius = 1.5 - (i / 60.0) * 0.5;
-            double px = x + Math.cos(angle) * radius;
-            double pz = z + Math.sin(angle) * radius;
-            double py = y + 0.1 + (i / 60.0) * 2.0;
-            level.sendParticles(ParticleTypes.SMOKE, px, py, pz, 3, 0.05, 0.05, 0.05, 0.02);
-            level.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, px, py, pz, 2, 0.05, 0.05, 0.05, 0.01);
+    private static final List<Vector3f> SMOKE_COLORS = List.of(
+            new Vector3f(0.6F, 0.2F, 0.8F),   // purple
+            new Vector3f(0.8F, 0.2F, 0.6F),   // magenta
+            new Vector3f(0.3F, 0.1F, 0.9F),   // deep blue
+            new Vector3f(0.9F, 0.1F, 0.3F),   // crimson
+            new Vector3f(0.1F, 0.8F, 0.6F),   // teal
+            new Vector3f(0.9F, 0.6F, 0.1F),   // amber
+            new Vector3f(0.2F, 0.9F, 0.3F),   // emerald
+            new Vector3f(0.9F, 0.3F, 0.1F),   // orange
+            new Vector3f(0.5F, 0.1F, 0.9F),   // violet
+            new Vector3f(0.9F, 0.1F, 0.7F)    // pink
+    );
+
+    private void spawnSmokeCloud(ServerLevel level, double x, double y, double z, ServerPlayer player) {
+        int colorIndex = Math.abs(player.getUUID().hashCode()) % SMOKE_COLORS.size();
+        Vector3f primaryColor = SMOKE_COLORS.get(colorIndex);
+        int secondaryIndex = (colorIndex + 3 + Math.abs(level.random.nextInt(5))) % SMOKE_COLORS.size();
+        Vector3f secondaryColor = SMOKE_COLORS.get(secondaryIndex);
+
+        Vector3f fromColor = primaryColor;
+        Vector3f toColor = secondaryColor;
+
+        java.util.Random rng = new java.util.Random(player.getUUID().getMostSignificantBits() + System.nanoTime());
+
+        for (int i = 0; i < 120; i++) {
+            double angle = rng.nextDouble() * Math.PI * 2;
+            double distance = rng.nextDouble() * 2.5;
+            double px = x + Math.cos(angle) * distance;
+            double pz = z + Math.sin(angle) * distance;
+            double py = y + 0.5 + rng.nextDouble() * 2.5 - 0.5;
+            float size = 1.0F + rng.nextFloat() * 2.0F;
+            level.sendParticles(
+                    new DustColorTransitionOptions(fromColor, toColor, size),
+                    px, py, pz, 1, (rng.nextDouble() - 0.5) * 0.1, rng.nextDouble() * 0.15, (rng.nextDouble() - 0.5) * 0.1, 0.02);
         }
-        for (int i = 0; i < 30; i++) {
-            double angle = (i / 30.0) * Math.PI * 2;
-            double radius = 0.5;
+
+        for (int i = 0; i < 60; i++) {
+            double angle = rng.nextDouble() * Math.PI * 2;
+            double distance = rng.nextDouble() * 1.8;
+            double px = x + Math.cos(angle) * distance;
+            double pz = z + Math.sin(angle) * distance;
+            double py = y + 0.2 + rng.nextDouble() * 1.8;
+            level.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE,
+                    px, py, pz, 2, (rng.nextDouble() - 0.5) * 0.1, rng.nextDouble() * 0.12, (rng.nextDouble() - 0.5) * 0.1, 0.01);
+        }
+
+        for (int i = 0; i < 40; i++) {
+            double angle = rng.nextDouble() * Math.PI * 2;
+            double distance = rng.nextDouble() * 1.5;
+            double px = x + Math.cos(angle) * distance;
+            double pz = z + Math.sin(angle) * distance;
+            double py = y + rng.nextDouble() * 2.2;
+            level.sendParticles(ParticleTypes.LARGE_SMOKE,
+                    px, py, pz, 1, (rng.nextDouble() - 0.5) * 0.08, rng.nextDouble() * 0.1, (rng.nextDouble() - 0.5) * 0.08, 0.015);
+        }
+
+        for (int i = 0; i < 25; i++) {
+            double angle = rng.nextDouble() * Math.PI * 2;
+            double radius = rng.nextDouble() * 0.8;
             level.sendParticles(ParticleTypes.REVERSE_PORTAL,
-                    x + Math.cos(angle) * radius, y + 1.0, z + Math.sin(angle) * radius,
-                    5, 0.05, 0.05, 0.05, 0.02);
+                    x + Math.cos(angle) * radius, y + 0.5 + rng.nextDouble() * 2.0, z + Math.sin(angle) * radius,
+                    3, (rng.nextDouble() - 0.5) * 0.05, rng.nextDouble() * 0.08, (rng.nextDouble() - 0.5) * 0.05, 0.02);
         }
     }
 
