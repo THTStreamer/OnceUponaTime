@@ -52,11 +52,16 @@ public class DarkSmokeEffect {
         }
 
         MinecraftServer server = level.getServer();
+        int maxDelay = WAVE_START_TICK + 2;
+
         for (ServerPlayer target : targets) {
+            if (target == caster) continue;
             double distance = target.distanceTo(caster);
             int delayTicks = WAVE_START_TICK + (int) (distance / WAVE_SPEED);
             delayTicks = Math.max(delayTicks, WAVE_START_TICK + 2);
+            if (delayTicks > maxDelay) maxDelay = delayTicks;
 
+            final int finalDelay = delayTicks;
             server.tell(new TickTask(server.getTickCount() + delayTicks, () -> {
                 if (target.isAlive()) {
                     com.example.ouat.dimensions.DimensionManager.teleportToDimension(
@@ -83,6 +88,33 @@ public class DarkSmokeEffect {
                 }
             }));
         }
+
+        int casterDelay = maxDelay + 10;
+        server.tell(new TickTask(server.getTickCount() + casterDelay, () -> {
+            if (caster.isAlive()) {
+                com.example.ouat.dimensions.DimensionManager.teleportToDimension(
+                        caster, com.example.ouat.dimensions.DimensionManager.STORYBROOKE);
+
+                ServerLevel storyLevel = caster.server.getLevel(
+                        com.example.ouat.dimensions.DimensionManager.STORYBROOKE);
+                if (storyLevel != null) {
+                    for (int i = 0; i < 100; i++) {
+                        double angle = caster.level().random.nextDouble() * Math.PI * 2;
+                        double r = caster.level().random.nextDouble() * 4.0;
+                        storyLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.LARGE_SMOKE,
+                                caster.getX() + Math.cos(angle) * r,
+                                caster.getY() + caster.level().random.nextDouble() * 3.0,
+                                caster.getZ() + Math.sin(angle) * r,
+                                3, 0.3, 0.3, 0.3, 0.02);
+                    }
+                }
+
+                caster.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "§5§lThe Dark Curse is complete. You are transported to Storybrooke."));
+                caster.sendSystemMessage(net.minecraft.network.chat.Component.literal(
+                        "§8No more happy endings..."));
+            }
+        }));
     }
 
     public static void startClient(double x, double y, double z, int targetCount) {
