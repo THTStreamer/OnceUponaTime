@@ -4,6 +4,7 @@ import com.example.ouat.OnceUponATime;
 import com.example.ouat.config.ModConfig;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.data.UniqueRoleRegistry;
+import com.example.ouat.registry.ModDataComponents;
 import com.example.ouat.registry.ModItems;
 import com.example.ouat.roles.DarkOneRole;
 import com.example.ouat.ritual.Ritual;
@@ -16,6 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -128,8 +130,13 @@ public class DarkOneRitual extends Ritual {
         registry.claimRole(serverPlayer.getUUID(), UniqueRoleRegistry.RoleType.DARK_ONE);
         DarkOneRole.grantRole(serverPlayer);
 
+        ItemStack dagger = new ItemStack(ModItems.DARK_ONE_DAGGER.get());
+        dagger.set(ModDataComponents.DARK_ONE_DAGGER.value(),
+                new ModDataComponents.DarkOneDaggerData(serverPlayer.getUUID(), java.util.UUID.randomUUID(), true));
+        serverPlayer.getInventory().add(dagger);
+
         serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal("§4§lYou have become the Dark One!"));
-        serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal("§4§lYour power is immense, but your soul is now bound to darkness."));
+        serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal("§4§lYour Dark One's Dagger has been bound to you."));
 
         Vec3 pos = serverPlayer.position();
         for (ServerPlayer otherPlayer : level.getServer().getPlayerList().getPlayers()) {
