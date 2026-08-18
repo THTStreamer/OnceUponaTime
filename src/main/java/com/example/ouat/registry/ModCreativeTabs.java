@@ -63,6 +63,11 @@ public class ModCreativeTabs {
                                 output.accept(ModItems.MEMORY_POTION.get());
                                 output.accept(ModItems.NIGHT_ROOT.get());
                                 output.accept(ModItems.SQUID_INK.get());
+                                // Potion Brewer & Dark Curse
+                                output.accept(ModItems.POTION_BREWER.get());
+                                output.accept(ModItems.DARK_CURSE.get());
+                                // Blocks
+                                output.accept(ModBlocks.RITUAL_ALTAR.get());
                             })
                             .build()
             );

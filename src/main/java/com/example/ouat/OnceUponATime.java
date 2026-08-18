@@ -9,6 +9,7 @@ import com.example.ouat.entities.*;
 import com.example.ouat.magic.SpellRegistry;
 import com.example.ouat.magic.spells.*;
 import com.example.ouat.network.ModNetworkHandler;
+import com.example.ouat.registry.ModBlocks;
 import com.example.ouat.registry.ModCreativeTabs;
 import com.example.ouat.registry.ModDataComponents;
 import com.example.ouat.registry.ModEntities;
@@ -46,6 +47,7 @@ public class OnceUponATime {
 
     public OnceUponATime(IEventBus modBus, ModContainer modContainer) {
         ModItems.ITEMS.register(modBus);
+        ModBlocks.register(modBus);
         ModCreativeTabs.CREATIVE_MODE_TABS.register(modBus);
         ModDataComponents.COMPONENTS.register(modBus);
         ATTACHMENT_TYPES.register(modBus);

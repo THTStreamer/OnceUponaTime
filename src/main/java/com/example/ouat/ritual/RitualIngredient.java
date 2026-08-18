@@ -1,6 +1,7 @@
 package com.example.ouat.ritual;
 
-import com.example.ouat.registry.ModDataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 public class RitualIngredient {
@@ -23,9 +24,9 @@ public class RitualIngredient {
 
     public boolean matches(ItemStack stack) {
         if (stack.isEmpty()) return false;
-        ModDataComponents.RitualIngredientData data = stack.get(ModDataComponents.RITUAL_INGREDIENT.value());
-        if (data == null) return false;
-        return data.ingredientId().equals(ingredientId) && data.magicType().equals(magicType);
+        ResourceLocation key = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (key == null) return false;
+        return key.getPath().equals(ingredientId);
     }
 
     public boolean isPresentInInventory(net.minecraft.world.entity.player.Player player) {

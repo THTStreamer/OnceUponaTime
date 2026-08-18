@@ -1,8 +1,6 @@
 {
   "replace": false,
   "values": [
-    "onceuponatime:ritual_altar",
-    "onceuponatime:ritual_pedestal",
-    "onceuponatime:grimoire_lectern"
+    "onceuponatime:ritual_altar"
   ]
 }

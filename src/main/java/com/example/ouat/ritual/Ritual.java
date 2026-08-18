@@ -1,7 +1,9 @@
 package com.example.ouat.ritual;
 
+import com.example.ouat.data.PlayerSupernaturalData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -33,7 +35,11 @@ public abstract class Ritual {
     public int getMagicProficiencyRequired() { return magicProficiencyRequired; }
 
     public boolean canPerform(Player player, Level level, BlockPos center) {
-        if (player.experienceLevel < magicProficiencyRequired) return false;
+        if (magicProficiencyRequired > 0) {
+            if (!(player instanceof ServerPlayer serverPlayer)) return false;
+            PlayerSupernaturalData data = serverPlayer.getData(PlayerSupernaturalData.TYPE);
+            if (data == null || data.getMagicProficiency() < magicProficiencyRequired) return false;
+        }
         if (!ingredientValidator.validate(player)) return false;
         if (!detectStructure(level, center)) return false;
         return true;
