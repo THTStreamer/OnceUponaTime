@@ -131,7 +131,7 @@ Spells are learned by running `/ouat learn <spell_name>` and cast with `/ouat ca
 
 ## Rituals
 
-Rituals are performed by building a specific block structure and placing ritual ingredients on the pedestals. Stand on the altar and activate it. Each ritual claims a **unique role** — only one player per server can hold each role at a time.
+Rituals are performed by building a specific block structure. Ingredients are consumed from your inventory when the ritual activates. Right-click the bottom block of the structure to begin. Each ritual claims a **unique role** — only one player per server can hold each role at a time.
 
 ### Dark One Ascension
 
@@ -148,12 +148,13 @@ Rituals are performed by building a specific block structure and placing ritual 
 **Structure:**
 ```
         ◆ Diamond Block
-    ▢   ▢   ▢   ▢  ← Redstone Torches (4 sides)
         ■
         ■  ← Obsidian (3 blocks tall)
+    ▢   ■   ▢  ← Redstone Torches (4 sides, at bottom level)
         ■
     ═══════  ← Base
 ```
+*Redstone Torches go on the North, South, East, and West sides of the bottom Obsidian block.*
 
 **Effect:** Claims the Dark One role. Unlocks the *Dark One's Power* spell. Server-wide broadcast when completed.
 
@@ -174,13 +175,14 @@ Rituals are performed by building a specific block structure and placing ritual 
 **Structure:**
 ```
         ◆ Diamond Block
-    ▣   ▣   ▣   ▣  ← Torches (4 sides)
         □  ← Quartz Block
         □
         □
+    ▣   ☆   ▣  ← Torches (4 sides, at bottom level)
         ☆  ← Gold Block (base)
     ═══════
 ```
+*Torches go on the North, South, East, and West sides of the Gold Block.*
 
 **Effect:** Claims the Savior role. Light and Totem particle effects.
 
@@ -201,14 +203,15 @@ Rituals are performed by building a specific block structure and placing ritual 
 **Structure:**
 ```
         ◆ Diamond Block
-    ║   ║   ║   ║  ← End Rods (4 sides)
         ▨  ← Purpur Block
         ▨
         ▨
         ▨
-        ▨  ← 5 Purpur Blocks tall
+    ║   ▨   ║  ← End Rods (4 sides, at bottom level)
+        ▨  ← Purpur Block (base, 5 blocks tall)
     ═══════
 ```
+*End Rods go on the North, South, East, and West sides of the bottom Purpur Block.*
 
 **Effect:** Claims the Truest Believer role. Dragon breath and portal particle effects.
 
@@ -229,15 +232,16 @@ Rituals are performed by building a specific block structure and placing ritual 
 **Structure:**
 ```
         ◆ Diamond Block
-    ⬚   ⬚   ⬚   ⬚  ← Enchanting Tables (4 sides)
         ⬚  ← Bookshelf
         ⬚
         ⬚
         ⬚
         ⬚
-        ⬚  ← 6 Bookshelves tall
+    ⬚   ⬚   ⬚  ← Enchanting Tables (4 sides, at bottom level)
+        ⬚  ← Bookshelf (base, 6 blocks tall)
     ═══════
 ```
+*Enchanting Tables go on the North, South, East, and West sides of the bottom Bookshelf.*
 
 **Effect:** Claims the Author role. Enchant and smoke particle effects.
 
