@@ -45,13 +45,29 @@ public class WardSpell extends Spell {
         }
 
         BlockHitResult blockHit = (BlockHitResult) hitResult;
-        BlockPos doorPos = blockHit.getBlockPos();
-        BlockState doorState = level.getBlockState(doorPos);
+        BlockPos hitPos = blockHit.getBlockPos();
+        BlockState hitState = level.getBlockState(hitPos);
 
-        // The door must be air (open doorway)
-        if (!doorState.isAir()) {
-            player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§cThe ward must be placed on an open doorway (air block)."));
-            return false;
+        // Find the air block for the doorway
+        BlockPos doorPos;
+        if (hitState.isAir()) {
+            doorPos = hitPos;
+        } else {
+            // Look for adjacent air blocks in all 6 directions
+            doorPos = null;
+            for (BlockPos neighbor : List.of(
+                    hitPos.above(), hitPos.below(),
+                    hitPos.north(), hitPos.south(),
+                    hitPos.east(), hitPos.west())) {
+                if (level.getBlockState(neighbor).isAir()) {
+                    doorPos = neighbor;
+                    break;
+                }
+            }
+            if (doorPos == null) {
+                player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§cLook at an open doorway or entrance (need an air block nearby)."));
+                return false;
+            }
         }
 
         // Flood-fill to find interior air pockets
