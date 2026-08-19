@@ -10,9 +10,21 @@
           "parameters": {
             "temperature": 0.8,
             "humidity": 0.8,
-            "continentalness": 0.5,
+            "continentalness": 0.8,
             "erosion": 0.4,
             "weirdness": 0.3,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "onceuponatime:neverland_dark_hollow",
+          "parameters": {
+            "temperature": 0.6,
+            "humidity": 0.4,
+            "continentalness": 0.7,
+            "erosion": 0.6,
+            "weirdness": -0.5,
             "depth": 0.0,
             "offset": 0.0
           }
@@ -22,8 +34,20 @@
           "parameters": {
             "temperature": 0.9,
             "humidity": 0.3,
-            "continentalness": 0.0,
+            "continentalness": 0.3,
             "erosion": 0.1,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "onceuponatime:neverland_ocean",
+          "parameters": {
+            "temperature": 0.8,
+            "humidity": 0.7,
+            "continentalness": -0.3,
+            "erosion": 0.0,
             "weirdness": 0.0,
             "depth": 0.0,
             "offset": 0.0

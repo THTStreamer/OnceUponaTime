@@ -1,0 +1,55 @@
+{
+  "carvers": {
+    "air": ["minecraft:cave", "minecraft:cave_extra_underground"]
+  },
+  "temperature": 0.85,
+  "downfall": 0.7,
+  "has_precipitation": true,
+  "effects": {
+    "sky_color": 7842047,
+    "water_fog_color": 329011,
+    "fog_color": 12638463,
+    "water_color": 2837613,
+    "mood_sound": {
+      "sound": "minecraft:ambient.underwater",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    }
+  },
+  "spawners": {
+    "monster": [
+      {"type": "minecraft:drowned", "weight": 80, "minCount": 1, "maxCount": 4},
+      {"type": "minecraft:guardian", "weight": 30, "minCount": 1, "maxCount": 2}
+    ],
+    "creature": [],
+    "ambient": [],
+    "water_creature": [
+      {"type": "minecraft:squid", "weight": 20, "minCount": 4, "maxCount": 8},
+      {"type": "minecraft:dolphin", "weight": 10, "minCount": 1, "maxCount": 2}
+    ],
+    "underground_water_creature": [
+      {"type": "minecraft:glow_squid", "weight": 10, "minCount": 4, "maxCount": 6}
+    ],
+    "water_ambient": [
+      {"type": "minecraft:tropical_fish", "weight": 25, "minCount": 8, "maxCount": 8},
+      {"type": "minecraft:pufferfish", "weight": 10, "minCount": 1, "maxCount": 3}
+    ],
+    "axolotls": [],
+    "misc": []
+  },
+  "spawn_costs": {},
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    ["minecraft:ore_gravel", "minecraft:ore_clay"],
+    [],
+    ["minecraft:spring_water"],
+    ["minecraft:kelp"],
+    ["minecraft:freeze_top_layer"]
+  ]
+}

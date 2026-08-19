@@ -1,0 +1,53 @@
+{
+  "carvers": {
+    "air": ["minecraft:cave", "minecraft:cave_extra_underground"]
+  },
+  "temperature": 0.8,
+  "downfall": 0.5,
+  "has_precipitation": true,
+  "effects": {
+    "sky_color": 2105376,
+    "water_fog_color": 329011,
+    "fog_color": 1908001,
+    "water_color": 2105376,
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 4000,
+      "block_search_extent": 12,
+      "offset": 3.0
+    },
+    "ambient_sound": "minecraft:ambient.cave"
+  },
+  "spawners": {
+    "monster": [
+      {"type": "minecraft:onceuponatime:lost_soul", "weight": 80, "minCount": 2, "maxCount": 5},
+      {"type": "minecraft:onceuponatime:dark_swarm", "weight": 40, "minCount": 1, "maxCount": 3},
+      {"type": "minecraft:phantom", "weight": 20, "minCount": 1, "maxCount": 2},
+      {"type": "minecraft:spider", "weight": 30, "minCount": 1, "maxCount": 2},
+      {"type": "minecraft:zombie", "weight": 20, "minCount": 1, "maxCount": 1}
+    ],
+    "creature": [
+      {"type": "minecraft:bat", "weight": 20, "minCount": 8, "maxCount": 16}
+    ],
+    "ambient": [],
+    "water_creature": [],
+    "underground_water_creature": [],
+    "water_ambient": [],
+    "axolotls": [],
+    "misc": []
+  },
+  "spawn_costs": {},
+  "features": [
+    [],
+    ["minecraft:lake_lava_underground"],
+    ["minecraft:amethyst_geode"],
+    [],
+    [],
+    [],
+    ["minecraft:ore_dirt", "minecraft:ore_gravel", "minecraft:ore_coal_upper", "minecraft:ore_coal_lower", "minecraft:ore_iron_upper", "minecraft:ore_iron_middle"],
+    [],
+    ["minecraft:spring_water", "minecraft:spring_lava"],
+    ["minecraft:glow_lichen", "minecraft:dead_bush", "minecraft:brown_mushroom_normal", "minecraft:red_mushroom_normal"],
+    ["minecraft:freeze_top_layer"]
+  ]
+}
