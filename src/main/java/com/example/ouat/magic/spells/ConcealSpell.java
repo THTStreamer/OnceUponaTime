@@ -7,7 +7,6 @@ import com.example.ouat.magic.Spell;
 import com.example.ouat.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -87,8 +86,8 @@ public class ConcealSpell extends Spell {
 
         BlockPos roomCenter = findCenter(interiorAir);
 
-        int exitX = baseDoor.getX() + facing.getStepX() * 2;
-        int exitZ = baseDoor.getZ() + facing.getStepZ() * 2;
+        int exitX = baseDoor.getX() - facing.getStepX() * 3;
+        int exitZ = baseDoor.getZ() - facing.getStepZ() * 3;
         BlockPos exitPosition = new BlockPos(exitX, baseDoor.getY(), exitZ);
 
         Map<BlockPos, BlockState> originalBlocks = new LinkedHashMap<>();
@@ -96,25 +95,14 @@ public class ConcealSpell extends Spell {
 
         for (BlockPos shell : shellBlocks) {
             BlockState currentState = level.getBlockState(shell);
-            if (currentState.isAir() || currentState.getBlock() instanceof DoorBlock) {
-                BlockState terrain = getTerrainBlock(level, shell, interiorAir);
-                originalBlocks.put(shell, currentState);
-                level.setBlockAndUpdate(shell, terrain);
-                disguisedPositions.add(shell);
-            } else {
-                BlockState terrain = getTerrainBlock(level, shell, interiorAir);
-                originalBlocks.put(shell, currentState);
-                level.setBlockAndUpdate(shell, terrain);
-                disguisedPositions.add(shell);
-            }
+            BlockState terrain = getTerrainBlock(level, shell, interiorAir);
+            originalBlocks.put(shell, currentState);
+            level.setBlockAndUpdate(shell, terrain);
+            disguisedPositions.add(shell);
         }
 
         for (BlockPos air : interiorAir) {
-            if (!disguisedPositions.contains(air)) {
-                BlockState current = level.getBlockState(air);
-                originalBlocks.put(air, current);
-                disguisedPositions.add(air);
-            }
+            originalBlocks.put(air, level.getBlockState(air));
         }
 
         ConcealmentSavedData roomData = ConcealmentSavedData.get(level);
@@ -123,20 +111,32 @@ public class ConcealSpell extends Spell {
                 originalBlocks, disguisedPositions);
         roomData.addRoom(player.getUUID(), room);
 
-        addConcealmentEffects(level, roomCenter, shellBlocks.size() + interiorAir.size());
+        addConcealmentEffects(level, roomCenter, shellBlocks.size());
 
         player.sendSystemMessage(Component.literal("§5§lThe building has been concealed from sight."));
         return true;
     }
 
     private static void findInteriorAir(ServerLevel level, BlockPos startDoor, Direction facing, Set<BlockPos> result) {
-        int dx = -facing.getStepX();
-        int dz = -facing.getStepZ();
-        BlockPos behindDoor = startDoor.offset(dx, 0, dz);
+        int dx = facing.getStepX();
+        int dz = facing.getStepZ();
+        BlockPos start = startDoor.offset(dx, 0, dz);
+
+        BlockState startState = level.getBlockState(start);
+        if (!startState.isAir() && !(startState.getBlock() instanceof DoorBlock)) {
+            start = startDoor;
+            for (Direction dir : Direction.Plane.HORIZONTAL) {
+                BlockPos test = startDoor.relative(dir);
+                if (level.getBlockState(test).isAir()) {
+                    start = test;
+                    break;
+                }
+            }
+        }
 
         Queue<BlockPos> queue = new LinkedList<>();
-        queue.add(behindDoor);
-        result.add(behindDoor);
+        queue.add(start);
+        result.add(start);
 
         int maxY = startDoor.getY() + 20;
         int minY = startDoor.getY() - 5;
@@ -202,9 +202,19 @@ public class ConcealSpell extends Spell {
         }
     }
 
+    private static final Map<UUID, Long> TELEPORT_COOLDOWN = new HashMap<>();
+
     public static BlockPos getTeleportTarget(ServerPlayer player, ServerLevel level, ConcealmentSavedData.ConcealedRoom room) {
+        long now = level.getGameTime();
+        Long lastTeleport = TELEPORT_COOLDOWN.get(player.getUUID());
+        if (lastTeleport != null && now - lastTeleport < 5) {
+            return null;
+        }
+
         BlockPos playerPos = player.blockPosition();
         boolean isInside = room.getInteriorAir().contains(playerPos);
+
+        TELEPORT_COOLDOWN.put(player.getUUID(), now);
 
         if (isInside) {
             return room.getExitPosition();
