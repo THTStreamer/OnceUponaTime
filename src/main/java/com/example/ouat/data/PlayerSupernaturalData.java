@@ -40,7 +40,6 @@ public class PlayerSupernaturalData {
     private boolean heartProtected;
     private UUID heartProtectedBy;
     private final Map<String, PortalLocation> savedPortals = new HashMap<>();
-    private boolean concealReady;
 
     public PlayerSupernaturalData() {
         this.currentRole = null;
@@ -61,7 +60,6 @@ public class PlayerSupernaturalData {
         this.heartRippedBy = null;
         this.heartProtected = false;
         this.heartProtectedBy = null;
-        this.concealReady = false;
     }
 
     public static CompoundTag serialize(PlayerSupernaturalData data) {
@@ -84,7 +82,6 @@ public class PlayerSupernaturalData {
         if (data.heartProtectedBy != null) {
             tag.putUUID("HeartProtectedBy", data.heartProtectedBy);
         }
-        tag.putBoolean("ConcealReady", data.concealReady);
 
         CompoundTag portalsTag = new CompoundTag();
         for (Map.Entry<String, PortalLocation> entry : data.savedPortals.entrySet()) {
@@ -161,7 +158,6 @@ public class PlayerSupernaturalData {
         if (tag.hasUUID("HeartProtectedBy")) {
             data.heartProtectedBy = tag.getUUID("HeartProtectedBy");
         }
-        data.concealReady = tag.getBoolean("ConcealReady");
 
         CompoundTag portalsTag = tag.getCompound("SavedPortals");
         for (String name : portalsTag.getAllKeys()) {
@@ -286,9 +282,6 @@ public class PlayerSupernaturalData {
         this.heartProtected = protected_;
         this.heartProtectedBy = protectedBy;
     }
-
-    public boolean isConcealReady() { return concealReady; }
-    public void setConcealReady(boolean ready) { this.concealReady = ready; }
 
     public Map<String, PortalLocation> getSavedPortals() { return savedPortals; }
     public boolean hasSavedPortals() { return !savedPortals.isEmpty(); }

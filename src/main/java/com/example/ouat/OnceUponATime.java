@@ -130,9 +130,6 @@ public class OnceUponATime {
             SpellRegistry.register(new CurseOfEmptyHeart());
             SpellRegistry.register(new CurseOfTheSavior());
 
-            // Utility & Concealment
-            SpellRegistry.register(new ConcealSpell());
-
             LOGGER.info("Once Upon a Time common setup complete");
         });
     }

@@ -38,11 +38,5 @@ public class ModNetworkHandler {
                 DarkSmokeSpawnPacket.STREAM_CODEC,
                 DarkSmokeSpawnPacket::handle
         );
-
-        registrar.playToClient(
-                ConcealmentStatePacket.TYPE,
-                ConcealmentStatePacket.STREAM_CODEC,
-                ConcealmentStatePacket::handle
-        );
     }
 }
