@@ -3,6 +3,7 @@ package com.example.ouat.magic.spells;
 import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -16,7 +17,7 @@ public class NightRootAbsorption extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "night_root_absorption");
 
     public NightRootAbsorption() {
-        super(ID, "Night Root Absorption", 22);
+        super(ID, "Night Root Absorption", 22, MagicType.DARK);
     }
 
     @Override

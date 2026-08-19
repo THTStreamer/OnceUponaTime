@@ -3,6 +3,7 @@ package com.example.ouat.magic.spells;
 import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -16,7 +17,7 @@ public class Fireball extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "fireball");
 
     public Fireball() {
-        super(ID, "Fireball", 15);
+        super(ID, "Fireball", 15, MagicType.DARK);
     }
 
     @Override

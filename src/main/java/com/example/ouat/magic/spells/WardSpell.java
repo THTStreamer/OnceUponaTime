@@ -4,6 +4,7 @@ import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.WardSavedData;
 import com.example.ouat.data.WardSavedData.WardedBuilding;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +25,7 @@ public class WardSpell extends Spell {
     private static final int MIN_WARD_SIZE = 2;
 
     public WardSpell() {
-        super(ID, "Ward", 25, 10);
+        super(ID, "Ward", 25, 10, MagicType.LIGHT);
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.example.ouat.magic.spells;
 import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.particles.DustColorTransitionOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
@@ -16,7 +17,7 @@ public class HeartProtection extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "heart_protection");
 
     public HeartProtection() {
-        super(ID, "Heart Protection", 25);
+        super(ID, "Heart Protection", 25, MagicType.LIGHT);
     }
 
     @Override

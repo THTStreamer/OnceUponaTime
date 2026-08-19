@@ -3,6 +3,7 @@ package com.example.ouat.magic.spells;
 import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -15,7 +16,7 @@ public class HealingLight extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "healing_light");
 
     public HealingLight() {
-        super(ID, "Healing Light", 10);
+        super(ID, "Healing Light", 10, MagicType.LIGHT);
     }
 
     @Override

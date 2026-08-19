@@ -1,6 +1,7 @@
 package com.example.ouat.rituals;
 
 import com.example.ouat.OnceUponATime;
+import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.data.UniqueRoleRegistry;
 import com.example.ouat.registry.ModItems;
 import com.example.ouat.roles.SaviorRole;
@@ -24,7 +25,8 @@ public class SaviorRitual extends Ritual {
     public static final ResourceLocation RITUAL_ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "savior_awakening");
 
     public SaviorRitual() {
-        super(RITUAL_ID, "Savior Awakening", createIngredients(), createStructurePatterns(), 72000, 25);
+        super(RITUAL_ID, "Savior Awakening", createIngredients(), createStructurePatterns(), 72000, 25,
+                PlayerSupernaturalData.MagicalAlignment.LIGHT);
     }
 
     private static List<RitualIngredient> createIngredients() {

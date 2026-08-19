@@ -12,6 +12,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -156,6 +158,13 @@ public class DarkOneDaggerItem extends Item {
             if (currentDarkOne == null) {
                 stack.set(ModDataComponents.DARK_ONE_DAGGER.value(),
                         new ModDataComponents.DarkOneDaggerData(data.boundOwner(), data.instanceId(), false));
+                return;
+            }
+
+            // Amplify Dark One's power when holding the dagger
+            if (currentDarkOne.equals(player.getUUID())) {
+                player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 60, 1, false, false, true));
+                player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 60, 0, false, false, true));
             }
         }
     }

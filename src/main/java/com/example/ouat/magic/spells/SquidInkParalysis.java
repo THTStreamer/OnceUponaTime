@@ -3,6 +3,7 @@ package com.example.ouat.magic.spells;
 import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -15,7 +16,7 @@ public class SquidInkParalysis extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "squid_ink_paralysis");
 
     public SquidInkParalysis() {
-        super(ID, "Squid Ink Paralysis", 25);
+        super(ID, "Squid Ink Paralysis", 25, MagicType.DARK);
     }
 
     @Override

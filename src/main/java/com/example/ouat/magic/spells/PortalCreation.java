@@ -4,6 +4,7 @@ import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.data.PlayerSupernaturalData.PortalLocation;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import com.example.ouat.particles.PurpleSmokeEffect;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -18,7 +19,7 @@ public class PortalCreation extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "portal_creation");
 
     public PortalCreation() {
-        super(ID, "Portal Creation", 30);
+        super(ID, "Portal Creation", 30, MagicType.NEUTRAL);
     }
 
     @Override

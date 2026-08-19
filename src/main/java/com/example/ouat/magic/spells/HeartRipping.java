@@ -3,6 +3,7 @@ package com.example.ouat.magic.spells;
 import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import com.example.ouat.registry.ModDataComponents;
 import com.example.ouat.registry.ModItems;
 import net.minecraft.core.particles.DustColorTransitionOptions;
@@ -20,7 +21,7 @@ public class HeartRipping extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "heart_ripping");
 
     public HeartRipping() {
-        super(ID, "Heart Ripping", 35);
+        super(ID, "Heart Ripping", 35, MagicType.DARK);
     }
 
     @Override

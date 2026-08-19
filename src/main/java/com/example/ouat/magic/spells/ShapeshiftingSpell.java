@@ -3,6 +3,7 @@ package com.example.ouat.magic.spells;
 import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.particles.DustColorTransitionOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
@@ -16,7 +17,7 @@ public class ShapeshiftingSpell extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "shapeshifting");
 
     public ShapeshiftingSpell() {
-        super(ID, "Shapeshifting", 25);
+        super(ID, "Shapeshifting", 25, MagicType.NEUTRAL);
     }
 
     @Override

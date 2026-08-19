@@ -5,6 +5,7 @@ import com.example.ouat.data.CurseInstance;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.data.UniqueRoleRegistry;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -19,7 +20,7 @@ public class CurseOfTheSavior extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "curse_of_the_savior");
 
     public CurseOfTheSavior() {
-        super(ID, "Curse of the Savior", 45);
+        super(ID, "Curse of the Savior", 45, MagicType.DARK);
     }
 
     @Override

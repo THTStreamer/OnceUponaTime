@@ -1,6 +1,7 @@
 package com.example.ouat.rituals;
 
 import com.example.ouat.OnceUponATime;
+import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.data.UniqueRoleRegistry;
 import com.example.ouat.roles.TruestBelieverRole;
 import com.example.ouat.ritual.Ritual;
@@ -23,7 +24,8 @@ public class TruestBelieverRitual extends Ritual {
     public static final ResourceLocation RITUAL_ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "truest_believer_awakening");
 
     public TruestBelieverRitual() {
-        super(RITUAL_ID, "Truest Believer Awakening", createIngredients(), createStructurePatterns(), 144000, 50);
+        super(RITUAL_ID, "Truest Believer Awakening", createIngredients(), createStructurePatterns(), 144000, 50,
+                PlayerSupernaturalData.MagicalAlignment.LIGHT);
     }
 
     private static List<RitualIngredient> createIngredients() {

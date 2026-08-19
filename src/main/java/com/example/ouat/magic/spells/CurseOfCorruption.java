@@ -4,6 +4,7 @@ import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.CurseInstance;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.particles.DustColorTransitionOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
@@ -17,7 +18,7 @@ public class CurseOfCorruption extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "curse_of_corruption");
 
     public CurseOfCorruption() {
-        super(ID, "Curse of Corruption", 32);
+        super(ID, "Curse of Corruption", 32, MagicType.DARK);
     }
 
     @Override

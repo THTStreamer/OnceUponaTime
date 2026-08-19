@@ -198,7 +198,7 @@ public class OuATCommands {
             return 0;
         }
 
-        boolean success = argument != null ? spell.cast(player, argument) : spell.cast(player);
+        boolean success = argument != null ? spell.tryCast(player) : spell.tryCast(player);
         return success ? 1 : 0;
     }
 

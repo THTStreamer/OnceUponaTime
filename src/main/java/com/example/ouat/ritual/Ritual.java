@@ -18,15 +18,23 @@ public abstract class Ritual {
     protected final List<StructurePattern> structurePatterns;
     protected final int cooldownTicks;
     protected final int magicProficiencyRequired;
+    protected final PlayerSupernaturalData.MagicalAlignment alignmentRequired;
 
     public Ritual(ResourceLocation ritualId, String ritualName, List<RitualIngredient> ingredients,
                   List<StructurePattern> structurePatterns, int cooldownTicks, int magicProficiencyRequired) {
+        this(ritualId, ritualName, ingredients, structurePatterns, cooldownTicks, magicProficiencyRequired, null);
+    }
+
+    public Ritual(ResourceLocation ritualId, String ritualName, List<RitualIngredient> ingredients,
+                  List<StructurePattern> structurePatterns, int cooldownTicks, int magicProficiencyRequired,
+                  PlayerSupernaturalData.MagicalAlignment alignmentRequired) {
         this.ritualId = ritualId;
         this.ritualName = ritualName;
         this.ingredientValidator = new IngredientValidator(ingredients);
         this.structurePatterns = structurePatterns;
         this.cooldownTicks = cooldownTicks;
         this.magicProficiencyRequired = magicProficiencyRequired;
+        this.alignmentRequired = alignmentRequired;
     }
 
     public ResourceLocation getRitualId() { return ritualId; }
@@ -39,6 +47,16 @@ public abstract class Ritual {
             if (!(player instanceof ServerPlayer serverPlayer)) return false;
             PlayerSupernaturalData data = serverPlayer.getData(PlayerSupernaturalData.TYPE);
             if (data == null || data.getMagicProficiency() < magicProficiencyRequired) return false;
+        }
+        if (alignmentRequired != null) {
+            if (!(player instanceof ServerPlayer serverPlayer)) return false;
+            PlayerSupernaturalData data = serverPlayer.getData(PlayerSupernaturalData.TYPE);
+            PlayerSupernaturalData.MagicalAlignment current = data.getComputedAlignment();
+            if (alignmentRequired == PlayerSupernaturalData.MagicalAlignment.LIGHT
+                    && current != PlayerSupernaturalData.MagicalAlignment.LIGHT) {
+                serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal("§cThis ritual requires a Light alignment."));
+                return false;
+            }
         }
         if (!ingredientValidator.validate(player)) return false;
         if (!detectStructure(level, center)) return false;

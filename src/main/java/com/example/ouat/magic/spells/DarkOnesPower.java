@@ -4,6 +4,7 @@ import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.data.UniqueRoleRegistry;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.particles.DustColorTransitionOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
@@ -19,7 +20,7 @@ public class DarkOnesPower extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "dark_ones_power");
 
     public DarkOnesPower() {
-        super(ID, "Dark One's Power", 40);
+        super(ID, "Dark One's Power", 40, MagicType.DARK);
     }
 
     @Override
