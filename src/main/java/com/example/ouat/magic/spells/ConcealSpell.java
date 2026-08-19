@@ -4,6 +4,7 @@ import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.ConcealmentSavedData;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.network.ConcealmentStatePacket;
 import com.example.ouat.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -96,14 +97,9 @@ public class ConcealSpell extends Spell {
 
         for (BlockPos shell : shellBlocks) {
             BlockState currentState = level.getBlockState(shell);
-            BlockState terrain = getTerrainBlock(level, shell, interiorAir);
             originalBlocks.put(shell, currentState);
-            level.setBlockAndUpdate(shell, terrain);
+            level.setBlockAndUpdate(shell, Blocks.BARRIER.defaultBlockState());
             disguisedPositions.add(shell);
-        }
-
-        for (BlockPos air : interiorAir) {
-            originalBlocks.put(air, level.getBlockState(air));
         }
 
         ConcealmentSavedData roomData = ConcealmentSavedData.get(level);
@@ -112,10 +108,20 @@ public class ConcealSpell extends Spell {
                 originalBlocks, disguisedPositions);
         roomData.addRoom(player.getUUID(), room);
 
+        Map<BlockPos, BlockState> casterBlocks = new HashMap<>();
+        for (BlockPos pos : disguisedPositions) {
+            if (originalBlocks.containsKey(pos)) {
+                casterBlocks.put(pos, originalBlocks.get(pos));
+            }
+        }
+
+        ConcealmentStatePacket packet = new ConcealmentStatePacket(casterBlocks, false);
+        player.connection.send(packet);
+
         addConcealmentEffects(level, roomCenter, shellBlocks.size());
 
         player.sendSystemMessage(Component.literal("§5§lThe building has been concealed from sight."));
-        player.sendSystemMessage(Component.literal("§7Right-click a wall block to teleport in/out."));
+        player.sendSystemMessage(Component.literal("§7Right-click the invisible wall to teleport in/out."));
         return true;
     }
 
@@ -172,22 +178,6 @@ public class ConcealSpell extends Spell {
         }
         int size = positions.size();
         return new BlockPos(sumX / size, sumY / size, sumZ / size);
-    }
-
-    private static BlockState getTerrainBlock(ServerLevel level, BlockPos pos, Set<BlockPos> interiorAir) {
-        for (Direction dir : Direction.Plane.HORIZONTAL) {
-            BlockPos neighbor = pos.relative(dir);
-            if (!interiorAir.contains(neighbor)) {
-                BlockState outside = level.getBlockState(neighbor);
-                if (!outside.isAir() && !(outside.getBlock() instanceof DoorBlock)) {
-                    return outside;
-                }
-            }
-        }
-
-        if (pos.getY() < 60) return Blocks.STONE.defaultBlockState();
-        if (pos.getY() < 64) return Blocks.DIRT.defaultBlockState();
-        return Blocks.GRASS_BLOCK.defaultBlockState();
     }
 
     private static void addConcealmentEffects(ServerLevel level, BlockPos center, int blockCount) {
