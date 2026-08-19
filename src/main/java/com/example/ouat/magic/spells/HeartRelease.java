@@ -84,6 +84,8 @@ public class HeartRelease extends Spell {
             targetPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal("§7The protection on your heart has been released."));
         }
 
+        onSuccessfulCast(player, 2);
+        shiftAlignment(player, 10);
         return true;
     }
 }

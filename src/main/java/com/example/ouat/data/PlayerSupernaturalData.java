@@ -41,6 +41,13 @@ public class PlayerSupernaturalData {
     private UUID heartProtectedBy;
     private final Map<String, PortalLocation> savedPortals = new HashMap<>();
 
+    // --- Per-Spell Proficiency System ---
+    private final Map<ResourceLocation, Integer> spellProficiencies = new HashMap<>();
+
+    // --- Alignment System ---
+    // -100 (pure DARK) to +100 (pure LIGHT), 0 = NEUTRAL
+    private int alignmentValue = 0;
+
     public PlayerSupernaturalData() {
         this.currentRole = null;
         this.magicalAlignment = MagicalAlignment.NONE;
@@ -62,6 +69,100 @@ public class PlayerSupernaturalData {
         this.heartProtectedBy = null;
     }
 
+    // ========== Per-Spell Proficiency ==========
+
+    public int getSpellProficiency(ResourceLocation spellId) {
+        return spellProficiencies.getOrDefault(spellId, 0);
+    }
+
+    public void setSpellProficiency(ResourceLocation spellId, int value) {
+        spellProficiencies.put(spellId, Math.max(0, Math.min(100, value)));
+        recomputeOverallProficiency();
+    }
+
+    public void addSpellProficiency(ResourceLocation spellId, int amount) {
+        int current = getSpellProficiency(spellId);
+        int newVal = Math.max(0, Math.min(100, current + amount));
+        spellProficiencies.put(spellId, newVal);
+        recomputeOverallProficiency();
+    }
+
+    public Map<ResourceLocation, Integer> getAllSpellProficiencies() {
+        return spellProficiencies;
+    }
+
+    private void recomputeOverallProficiency() {
+        if (spellProficiencies.isEmpty()) {
+            this.magicProficiency = 0;
+            return;
+        }
+        int sum = 0;
+        for (int val : spellProficiencies.values()) {
+            sum += val;
+        }
+        this.magicProficiency = sum / spellProficiencies.size();
+    }
+
+    /**
+     * Returns the food cost multiplier based on spell proficiency.
+     * Higher proficiency = lower cost. Ranges from 1.0 (novice) to 0.6 (master).
+     */
+    public float getFoodCostMultiplier(ResourceLocation spellId) {
+        int prof = getSpellProficiency(spellId);
+        if (prof <= 20) return 1.0f;
+        if (prof <= 40) return 0.9f;
+        if (prof <= 60) return 0.8f;
+        if (prof <= 80) return 0.7f;
+        return 0.6f;
+    }
+
+    /**
+     * Returns the proficiency tier name for display.
+     */
+    public String getProficiencyTier(ResourceLocation spellId) {
+        int prof = getSpellProficiency(spellId);
+        if (prof <= 20) return "Novice";
+        if (prof <= 40) return "Apprentice";
+        if (prof <= 60) return "Adept";
+        if (prof <= 80) return "Expert";
+        return "Master";
+    }
+
+    // ========== Alignment System ==========
+
+    public int getAlignmentValue() {
+        return alignmentValue;
+    }
+
+    public void setAlignmentValue(int value) {
+        this.alignmentValue = Math.max(-100, Math.min(100, value));
+        recomputeAlignment();
+    }
+
+    public void shiftAlignment(int amount) {
+        this.alignmentValue = Math.max(-100, Math.min(100, this.alignmentValue + amount));
+        recomputeAlignment();
+    }
+
+    private void recomputeAlignment() {
+        if (alignmentValue > 30) {
+            this.magicalAlignment = MagicalAlignment.LIGHT;
+        } else if (alignmentValue < -30) {
+            this.magicalAlignment = MagicalAlignment.DARK;
+        } else if (alignmentValue == 0 && this.magicProficiency == 0) {
+            this.magicalAlignment = MagicalAlignment.NONE;
+        } else {
+            this.magicalAlignment = MagicalAlignment.NEUTRAL;
+        }
+    }
+
+    public MagicalAlignment getComputedAlignment() {
+        recomputeAlignment();
+        return this.magicalAlignment;
+    }
+
+    // ========== Serialization ==========
+
     public static CompoundTag serialize(PlayerSupernaturalData data) {
         CompoundTag tag = new CompoundTag();
 
@@ -82,6 +183,16 @@ public class PlayerSupernaturalData {
         if (data.heartProtectedBy != null) {
             tag.putUUID("HeartProtectedBy", data.heartProtectedBy);
         }
+
+        // Alignment
+        tag.putInt("AlignmentValue", data.alignmentValue);
+
+        // Per-spell proficiencies
+        CompoundTag profTag = new CompoundTag();
+        for (Map.Entry<ResourceLocation, Integer> entry : data.spellProficiencies.entrySet()) {
+            profTag.putInt(entry.getKey().toString(), entry.getValue());
+        }
+        tag.put("SpellProficiencies", profTag);
 
         CompoundTag portalsTag = new CompoundTag();
         for (Map.Entry<String, PortalLocation> entry : data.savedPortals.entrySet()) {
@@ -157,6 +268,15 @@ public class PlayerSupernaturalData {
         data.heartProtected = tag.getBoolean("HeartProtected");
         if (tag.hasUUID("HeartProtectedBy")) {
             data.heartProtectedBy = tag.getUUID("HeartProtectedBy");
+        }
+
+        // Alignment
+        data.alignmentValue = tag.getInt("AlignmentValue");
+
+        // Per-spell proficiencies
+        CompoundTag profTag = tag.getCompound("SpellProficiencies");
+        for (String key : profTag.getAllKeys()) {
+            data.spellProficiencies.put(ResourceLocation.parse(key), profTag.getInt(key));
         }
 
         CompoundTag portalsTag = tag.getCompound("SavedPortals");

@@ -18,7 +18,8 @@ public record PlayerDataSyncPacket(
         String magicalAlignment,
         int magicProficiency,
         boolean hasHeldUniqueRole,
-        int storyProgression
+        int storyProgression,
+        int alignmentValue
 ) implements CustomPacketPayload {
 
     public static final Type<PlayerDataSyncPacket> TYPE =
@@ -31,6 +32,7 @@ public record PlayerDataSyncPacket(
                     ByteBufCodecs.VAR_INT, PlayerDataSyncPacket::magicProficiency,
                     ByteBufCodecs.BOOL, PlayerDataSyncPacket::hasHeldUniqueRole,
                     ByteBufCodecs.VAR_INT, PlayerDataSyncPacket::storyProgression,
+                    ByteBufCodecs.VAR_INT, PlayerDataSyncPacket::alignmentValue,
                     PlayerDataSyncPacket::new
             );
 
@@ -45,7 +47,8 @@ public record PlayerDataSyncPacket(
                 data.getMagicalAlignment().name(),
                 data.getMagicProficiency(),
                 data.hasHeldUniqueRole(),
-                data.getStoryProgression()
+                data.getStoryProgression(),
+                data.getAlignmentValue()
         );
     }
 
@@ -64,6 +67,7 @@ public record PlayerDataSyncPacket(
                     data.setMagicProficiency(packet.magicProficiency);
                     data.setHasHeldUniqueRole(packet.hasHeldUniqueRole);
                     data.setStoryProgression(packet.storyProgression);
+                    data.setAlignmentValue(packet.alignmentValue);
                 }
             } else {
                 var player = context.player();

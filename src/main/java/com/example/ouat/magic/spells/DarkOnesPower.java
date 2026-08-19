@@ -67,6 +67,8 @@ public class DarkOnesPower extends Spell {
 
         player.playSound(SoundEvents.WITHER_DEATH, 2.0F, 0.3F);
         player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§4§lThe darkness surges through you! You feel its immense power!"));
+        onSuccessfulCast(player, 3);
+        shiftAlignment(player, -3);
         return true;
     }
 }

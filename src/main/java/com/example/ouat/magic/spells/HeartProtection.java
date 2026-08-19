@@ -96,6 +96,8 @@ public class HeartProtection extends Spell {
             }
         }
 
+        onSuccessfulCast(player, 3);
+        shiftAlignment(player, 5);
         return true;
     }
 }

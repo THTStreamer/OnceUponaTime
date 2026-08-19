@@ -57,6 +57,8 @@ public class MemoryWipe extends Spell {
         targetPlayer.playSound(SoundEvents.ILLUSIONER_PREPARE_MIRROR, 1.0F, 0.5F);
         player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§4§lYou wipe " + spellsRemoved + " spells from " + targetPlayer.getName().getString() + "'s memory!"));
         targetPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal("§4§lYou feel your knowledge fading..."));
+        onSuccessfulCast(player, 3);
+        shiftAlignment(player, -5);
         return true;
     }
 }

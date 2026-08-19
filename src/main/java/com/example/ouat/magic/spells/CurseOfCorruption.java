@@ -65,6 +65,8 @@ public class CurseOfCorruption extends Spell {
         targetPlayer.playSound(SoundEvents.WITHER_DEATH, 1.0F, 0.3F);
         player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§4§lYou curse " + targetPlayer.getName().getString() + " with corruption!"));
         targetPlayer.sendSystemMessage(net.minecraft.network.chat.Component.literal("§4§lDark corruption seeps into your body..."));
+        onSuccessfulCast(player, 3);
+        shiftAlignment(player, -10);
         return true;
     }
 }

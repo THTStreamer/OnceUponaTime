@@ -42,6 +42,8 @@ public class HealingLight extends Spell {
 
         player.playSound(SoundEvents.TOTEM_USE, 1.0F, 1.5F);
         player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§aYou channel the light of true love and heal your wounds!"));
+        onSuccessfulCast(player, 3);
+        shiftAlignment(player, 5);
         return true;
     }
 }

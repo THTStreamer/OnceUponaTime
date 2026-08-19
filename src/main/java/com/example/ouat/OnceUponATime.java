@@ -6,6 +6,7 @@ import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.data.PlayerSupernaturalDataProvider;
 import com.example.ouat.data.UniqueRoleRegistry;
 import com.example.ouat.entities.*;
+import com.example.ouat.events.WardEvents;
 import com.example.ouat.magic.SpellRegistry;
 import com.example.ouat.magic.spells.*;
 import com.example.ouat.network.ModNetworkHandler;
@@ -69,6 +70,7 @@ public class OnceUponATime {
         NeoForge.EVENT_BUS.addListener(UniqueRoleRegistry::onServerStarting);
         NeoForge.EVENT_BUS.addListener(UniqueRoleRegistry::onServerStopping);
         NeoForge.EVENT_BUS.addListener(PlayerSupernaturalDataProvider::onPlayerClone);
+        NeoForge.EVENT_BUS.register(WardEvents.class);
 
         ModNetworkHandler.register();
 
@@ -129,6 +131,9 @@ public class OnceUponATime {
             SpellRegistry.register(new SquidInkParalysis());
             SpellRegistry.register(new CurseOfEmptyHeart());
             SpellRegistry.register(new CurseOfTheSavior());
+
+            // Protection
+            SpellRegistry.register(new WardSpell());
 
             LOGGER.info("Once Upon a Time common setup complete");
         });

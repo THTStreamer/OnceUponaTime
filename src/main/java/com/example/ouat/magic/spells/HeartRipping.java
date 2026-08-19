@@ -111,6 +111,9 @@ public class HeartRipping extends Spell {
             }
         }
 
+        onSuccessfulCast(player, 3);
+        shiftAlignment(player, -15);
+
         return true;
     }
 }
