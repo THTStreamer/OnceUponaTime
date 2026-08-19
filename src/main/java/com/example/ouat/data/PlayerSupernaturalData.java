@@ -77,14 +77,12 @@ public class PlayerSupernaturalData {
 
     public void setSpellProficiency(ResourceLocation spellId, int value) {
         spellProficiencies.put(spellId, Math.max(0, Math.min(100, value)));
-        recomputeOverallProficiency();
     }
 
     public void addSpellProficiency(ResourceLocation spellId, int amount) {
         int current = getSpellProficiency(spellId);
         int newVal = Math.max(0, Math.min(100, current + amount));
         spellProficiencies.put(spellId, newVal);
-        recomputeOverallProficiency();
     }
 
     public Map<ResourceLocation, Integer> getAllSpellProficiencies() {

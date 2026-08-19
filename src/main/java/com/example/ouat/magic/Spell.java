@@ -57,6 +57,7 @@ public abstract class Spell {
     protected void onSuccessfulCast(ServerPlayer player, int proficiencyGain) {
         PlayerSupernaturalData data = player.getData(PlayerSupernaturalData.TYPE);
         data.addSpellProficiency(spellId, proficiencyGain);
+        data.addMagicProficiency(1);
     }
 
     /**
