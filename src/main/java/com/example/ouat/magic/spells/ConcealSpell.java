@@ -4,6 +4,7 @@ import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.ConcealmentSavedData;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.network.ConcealmentStatePacket;
 import com.example.ouat.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
 
@@ -111,6 +113,16 @@ public class ConcealSpell extends Spell {
                 originalBlocks, disguisedPositions);
         roomData.addRoom(player.getUUID(), room);
 
+        Map<BlockPos, BlockState> casterBlocks = new HashMap<>();
+        for (BlockPos pos : disguisedPositions) {
+            if (originalBlocks.containsKey(pos)) {
+                casterBlocks.put(pos, originalBlocks.get(pos));
+            }
+        }
+
+        ConcealmentStatePacket packet = new ConcealmentStatePacket(casterBlocks, false);
+        player.connection.send(packet);
+
         addConcealmentEffects(level, roomCenter, shellBlocks.size());
 
         player.sendSystemMessage(Component.literal("§5§lThe building has been concealed from sight."));
@@ -124,7 +136,6 @@ public class ConcealSpell extends Spell {
 
         BlockState startState = level.getBlockState(start);
         if (!startState.isAir() && !(startState.getBlock() instanceof DoorBlock)) {
-            start = startDoor;
             for (Direction dir : Direction.Plane.HORIZONTAL) {
                 BlockPos test = startDoor.relative(dir);
                 if (level.getBlockState(test).isAir()) {
