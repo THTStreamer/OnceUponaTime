@@ -4,7 +4,6 @@ import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.ConcealmentSavedData;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
-import com.example.ouat.network.ConcealmentStatePacket;
 import com.example.ouat.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -113,19 +112,10 @@ public class ConcealSpell extends Spell {
                 originalBlocks, disguisedPositions);
         roomData.addRoom(player.getUUID(), room);
 
-        Map<BlockPos, BlockState> casterBlocks = new HashMap<>();
-        for (BlockPos pos : disguisedPositions) {
-            if (originalBlocks.containsKey(pos)) {
-                casterBlocks.put(pos, originalBlocks.get(pos));
-            }
-        }
-
-        ConcealmentStatePacket packet = new ConcealmentStatePacket(casterBlocks, false);
-        player.connection.send(packet);
-
         addConcealmentEffects(level, roomCenter, shellBlocks.size());
 
         player.sendSystemMessage(Component.literal("§5§lThe building has been concealed from sight."));
+        player.sendSystemMessage(Component.literal("§7Right-click a wall block to teleport in/out."));
         return true;
     }
 
