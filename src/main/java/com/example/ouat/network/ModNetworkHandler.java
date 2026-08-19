@@ -38,5 +38,11 @@ public class ModNetworkHandler {
                 DarkSmokeSpawnPacket.STREAM_CODEC,
                 DarkSmokeSpawnPacket::handle
         );
+
+        registrar.playToClient(
+                WardBoundaryPacket.TYPE,
+                WardBoundaryPacket.STREAM_CODEC,
+                WardBoundaryPacket::handle
+        );
     }
 }

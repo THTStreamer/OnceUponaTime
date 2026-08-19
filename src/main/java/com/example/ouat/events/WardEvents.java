@@ -3,26 +3,21 @@ package com.example.ouat.events;
 import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.WardSavedData;
 import com.example.ouat.data.WardSavedData.WardedBuilding;
+import com.example.ouat.network.WardBoundaryPacket;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.DustColorTransitionOptions;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
-import org.joml.Vector3f;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
 
 @EventBusSubscriber(modid = OnceUponATime.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class WardEvents {
-
-    private static int tickCounter = 0;
-    private static final Map<String, Set<BlockPos>> doorwayCache = new HashMap<>();
 
     @SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
@@ -46,77 +41,88 @@ public class WardEvents {
     }
 
     @SubscribeEvent
-    public static void onServerTick(ServerTickEvent.Post event) {
-        var server = ServerLifecycleHooks.getCurrentServer();
-        if (server == null) return;
-
-        tickCounter++;
-        if (tickCounter % 8 != 0) return;
-
-        for (ServerLevel level : server.getAllLevels()) {
-            WardSavedData wardData = WardSavedData.get(level);
-            List<WardedBuilding> wards = wardData.getAllWards();
-
-            String levelKey = level.dimension().location().toString();
-            Set<BlockPos> allDoorways = doorwayCache.computeIfAbsent(levelKey, k -> new HashSet<>());
-
-            Set<BlockPos> currentDoorways = new HashSet<>();
-            for (WardedBuilding ward : wards) {
-                currentDoorways.addAll(computeDoorways(level, ward));
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            if (player.level() instanceof ServerLevel level) {
+                syncWardBoundariesForPlayer(level, player);
             }
-
-            allDoorways.retainAll(currentDoorways);
-            allDoorways.addAll(currentDoorways);
-
-            spawnShimmerParticles(level, allDoorways);
         }
     }
 
-    private static Set<BlockPos> computeDoorways(ServerLevel level, WardedBuilding ward) {
-        Set<BlockPos> doorways = new HashSet<>();
-        for (BlockPos pos : ward.getInteriorAir()) {
-            if (isExposedToOutside(level, pos, ward)) {
-                doorways.add(pos);
+    @SubscribeEvent
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            if (player.level() instanceof ServerLevel level) {
+                syncWardBoundariesForPlayer(level, player);
             }
         }
-        return doorways;
     }
 
-    private static boolean isExposedToOutside(ServerLevel level, BlockPos pos, WardedBuilding ward) {
-        for (BlockPos neighbor : List.of(
-                pos.above(), pos.below(),
-                pos.north(), pos.south(),
-                pos.east(), pos.west())) {
-            if (!ward.getInteriorAir().contains(neighbor) && level.getBlockState(neighbor).isAir()) {
-                return true;
+    public static void syncWardBoundaries(ServerLevel level) {
+        String dimKey = level.dimension().location().toString();
+        WardSavedData wardData = WardSavedData.get(level);
+        List<WardedBuilding> wards = wardData.getAllWards();
+
+        if (wards.isEmpty()) return;
+
+        List<WardBoundaryPacket.WardEntry> entries = new ArrayList<>();
+        for (WardedBuilding ward : wards) {
+            Set<BlockPos> interior = ward.getInteriorAir();
+            if (interior.isEmpty()) continue;
+
+            int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+
+            for (BlockPos pos : interior) {
+                minX = Math.min(minX, pos.getX());
+                minY = Math.min(minY, pos.getY());
+                minZ = Math.min(minZ, pos.getZ());
+                maxX = Math.max(maxX, pos.getX());
+                maxY = Math.max(maxY, pos.getY());
+                maxZ = Math.max(maxZ, pos.getZ());
             }
+
+            entries.add(new WardBoundaryPacket.WardEntry(
+                    minX, minY, minZ, maxX, maxY, maxZ, ward.getOwnerUUID()));
         }
-        return false;
+
+        if (entries.isEmpty()) return;
+
+        WardBoundaryPacket packet = new WardBoundaryPacket(dimKey, entries);
+
+        for (ServerPlayer player : level.players()) {
+            PacketDistributor.sendToPlayer(player, packet);
+        }
     }
 
-    private static void spawnShimmerParticles(ServerLevel level, Set<BlockPos> doorways) {
-        for (BlockPos pos : doorways) {
-            double x = pos.getX() + 0.5;
-            double y = pos.getY() + 0.5;
-            double z = pos.getZ() + 0.5;
+    private static void syncWardBoundariesForPlayer(ServerLevel level, ServerPlayer target) {
+        String dimKey = level.dimension().location().toString();
+        WardSavedData wardData = WardSavedData.get(level);
+        List<WardedBuilding> wards = wardData.getAllWards();
 
-            // Golden-white shimmer — the OUAT protection barrier
-            level.sendParticles(
-                    new DustColorTransitionOptions(
-                            new Vector3f(1.0f, 0.95f, 0.7f),
-                            new Vector3f(1.0f, 0.85f, 0.4f), 1.5F),
-                    x, y, z,
-                    3, 0.3, 0.4, 0.3, 0.01);
+        List<WardBoundaryPacket.WardEntry> entries = new ArrayList<>();
+        for (WardedBuilding ward : wards) {
+            Set<BlockPos> interior = ward.getInteriorAir();
+            if (interior.isEmpty()) continue;
 
-            // Enchantment sparkles
-            level.sendParticles(ParticleTypes.ENCHANT,
-                    x, y, z,
-                    5, 0.2, 0.3, 0.2, 0.5);
+            int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
 
-            // Subtle glow
-            level.sendParticles(ParticleTypes.GLOW,
-                    x, y + 0.5, z,
-                    2, 0.1, 0.2, 0.1, 0.02);
+            for (BlockPos pos : interior) {
+                minX = Math.min(minX, pos.getX());
+                minY = Math.min(minY, pos.getY());
+                minZ = Math.min(minZ, pos.getZ());
+                maxX = Math.max(maxX, pos.getX());
+                maxY = Math.max(maxY, pos.getY());
+                maxZ = Math.max(maxZ, pos.getZ());
+            }
+
+            entries.add(new WardBoundaryPacket.WardEntry(
+                    minX, minY, minZ, maxX, maxY, maxZ, ward.getOwnerUUID()));
+        }
+
+        if (!entries.isEmpty()) {
+            PacketDistributor.sendToPlayer(target, new WardBoundaryPacket(dimKey, entries));
         }
     }
 }

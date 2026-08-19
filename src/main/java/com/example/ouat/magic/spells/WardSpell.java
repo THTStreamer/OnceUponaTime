@@ -3,6 +3,7 @@ package com.example.ouat.magic.spells;
 import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.WardSavedData;
 import com.example.ouat.data.WardSavedData.WardedBuilding;
+import com.example.ouat.events.WardEvents;
 import com.example.ouat.magic.Spell;
 import com.example.ouat.magic.Spell.MagicType;
 import net.minecraft.core.BlockPos;
@@ -38,7 +39,6 @@ public class WardSpell extends Spell {
 
         ServerLevel level = player.serverLevel();
 
-        // Raycast to find the door block the player is looking at
         HitResult hitResult = player.pick(5.0, 0.0F, false);
         if (hitResult.getType() != HitResult.Type.BLOCK) {
             player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§cLook at a doorway or entrance to set the ward."));
@@ -49,12 +49,10 @@ public class WardSpell extends Spell {
         BlockPos hitPos = blockHit.getBlockPos();
         BlockState hitState = level.getBlockState(hitPos);
 
-        // Find the air block for the doorway
         BlockPos doorPos;
         if (hitState.isAir()) {
             doorPos = hitPos;
         } else {
-            // Look for adjacent air blocks in all 6 directions
             doorPos = null;
             for (BlockPos neighbor : List.of(
                     hitPos.above(), hitPos.below(),
@@ -71,40 +69,30 @@ public class WardSpell extends Spell {
             }
         }
 
-        // Flood-fill to find interior air pockets
         Set<BlockPos> interiorAir = floodFillAir(level, doorPos, MAX_WARD_SIZE);
         if (interiorAir.size() < MIN_WARD_SIZE) {
             player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§cInterior too small. Needs at least " + MIN_WARD_SIZE + " air blocks."));
             return false;
         }
 
-        // Compute protected positions: interior air + 1 block shell
         Set<BlockPos> protectedPositions = computeProtectedPositions(level, interiorAir);
 
-        // Save ward
         WardedBuilding ward = new WardedBuilding(player.getUUID(), doorPos, interiorAir, protectedPositions);
         WardSavedData wardData = WardSavedData.get(level);
         wardData.addWard(player.getUUID(), ward);
 
-        // VFX: spawn particles at every doorway block
-        for (BlockPos pos : interiorAir) {
-            // Check if this block is on the edge of the air fill
-            if (isDoorway(level, pos)) {
-                level.sendParticles(ParticleTypes.WITCH,
-                        pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
-                        20, 0.3, 0.5, 0.3, 0.01);
-                level.sendParticles(ParticleTypes.ENCHANT,
-                        pos.getX() + 0.5, pos.getY() + 1.0, pos.getZ() + 0.5,
-                        30, 0.2, 0.3, 0.2, 0.5);
-            }
-        }
+        // Brief confirmation: particles only at the doorway
+        level.sendParticles(ParticleTypes.ENCHANT,
+                doorPos.getX() + 0.5, doorPos.getY() + 0.5, doorPos.getZ() + 0.5,
+                30, 0.3, 0.5, 0.3, 0.5);
 
-        // Sound
         player.playSound(SoundEvents.BEACON_ACTIVATE, 1.5F, 1.2F);
 
-        // Proficiency gain
         onSuccessfulCast(player, 2);
         shiftAlignment(player, 3);
+
+        // Sync boundaries to nearby players
+        WardEvents.syncWardBoundaries(level);
 
         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                 "§a§lWard established! " + interiorAir.size() + " blocks protected."));
@@ -131,17 +119,6 @@ public class WardSpell extends Spell {
             }
         }
         return visited;
-    }
-
-    private boolean isDoorway(ServerLevel level, BlockPos pos) {
-        // A doorway is an air block that has at least one solid neighbor
-        // (i.e., it's on the boundary between interior and exterior)
-        return !level.getBlockState(pos.below()).isAir()
-                || !level.getBlockState(pos.above()).isAir()
-                || !level.getBlockState(pos.north()).isAir()
-                || !level.getBlockState(pos.south()).isAir()
-                || !level.getBlockState(pos.east()).isAir()
-                || !level.getBlockState(pos.west()).isAir();
     }
 
     private Set<BlockPos> computeProtectedPositions(ServerLevel level, Set<BlockPos> interiorAir) {
