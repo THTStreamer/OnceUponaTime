@@ -9,6 +9,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 import net.neoforged.api.distmarker.Dist;
@@ -16,13 +20,15 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
-import java.util.List;
+import java.util.*;
 
 @EventBusSubscriber(modid = OnceUponATime.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class WardRenderOverlay {
 
     private static ResourceLocation wardTexture;
     private static boolean textureCreated = false;
+
+    private static final int R = 255, G = 217, B = 77, A = 64;
 
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
@@ -39,9 +45,10 @@ public class WardRenderOverlay {
 
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
+        Level level = mc.level;
 
         for (WardBoundary ward : wards) {
-            renderWardBarrier(poseStack, bufferSource, ward);
+            renderWard(poseStack, bufferSource, ward, level);
         }
     }
 
@@ -62,74 +69,101 @@ public class WardRenderOverlay {
         }
     }
 
-    private static void renderWardBarrier(PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, WardBoundary ward) {
+    private static void renderWard(PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, WardBoundary ward, Level level) {
         Minecraft mc = Minecraft.getInstance();
         double camX = mc.gameRenderer.getMainCamera().getPosition().x;
         double camY = mc.gameRenderer.getMainCamera().getPosition().y;
         double camZ = mc.gameRenderer.getMainCamera().getPosition().z;
 
-        float x0 = (float)(ward.min().getX() - camX);
-        float y0 = (float)(ward.min().getY() - camY);
-        float z0 = (float)(ward.min().getZ() - camZ);
-        float x1 = (float)(ward.max().getX() + 1.0 - camX);
-        float y1 = (float)(ward.max().getY() + 1.0 - camY);
-        float z1 = (float)(ward.max().getZ() + 1.0 - camZ);
+        float cx = (float) camX, cy = (float) camY, cz = (float) camZ;
 
-        int r = 255, g = 217, b = 77, a = 64;
+        Set<BlockPos> interiorAir = ward.interiorAir();
 
-        if (wardTexture != null) {
-            VertexConsumer buffer = bufferSource.getBuffer(RenderType.entityTranslucent(wardTexture));
-            PoseStack.Pose pose = poseStack.last();
-
-            addQuad(buffer, pose, x0,y0,z1, x1,y0,z1, x1,y0,z0, x0,y0,z0, 0,-1,0, r,g,b,a);
-            addQuad(buffer, pose, x0,y1,z0, x1,y1,z0, x1,y1,z1, x0,y1,z1, 0,1,0, r,g,b,a);
-            addQuad(buffer, pose, x0,y0,z0, x1,y0,z0, x1,y1,z0, x0,y1,z0, 0,0,-1, r,g,b,a);
-            addQuad(buffer, pose, x0,y0,z1, x0,y1,z1, x1,y1,z1, x1,y0,z1, 0,0,1, r,g,b,a);
-            addQuad(buffer, pose, x0,y0,z0, x0,y0,z1, x0,y1,z1, x0,y1,z0, -1,0,0, r,g,b,a);
-            addQuad(buffer, pose, x1,y0,z1, x1,y0,z0, x1,y1,z0, x1,y1,z1, 1,0,0, r,g,b,a);
+        Set<BlockPos> wallBlocks = new HashSet<>();
+        for (BlockPos pos : interiorAir) {
+            for (Direction dir : Direction.values()) {
+                BlockPos neighbor = pos.relative(dir);
+                if (!interiorAir.contains(neighbor)) {
+                    BlockState state = level.getBlockState(neighbor);
+                    if (!state.isAir()) {
+                        wallBlocks.add(neighbor);
+                    }
+                }
+            }
         }
 
+        if (wardTexture == null) return;
+        VertexConsumer quadBuffer = bufferSource.getBuffer(RenderType.entityTranslucent(wardTexture));
+        PoseStack.Pose pose = poseStack.last();
+
+        for (BlockPos wall : wallBlocks) {
+            for (Direction dir : Direction.values()) {
+                BlockPos faceNeighbor = wall.relative(dir);
+                if (!interiorAir.contains(faceNeighbor) && level.getBlockState(faceNeighbor).isAir()) {
+                    renderFace(quadBuffer, pose, wall, dir, cx, cy, cz);
+                }
+            }
+        }
+
+        Matrix4f m = pose.pose();
         VertexConsumer lineBuffer = bufferSource.getBuffer(RenderType.lines());
-        Matrix4f m = poseStack.last().pose();
-        drawLineBox(lineBuffer, m, x0, y0, z0, x1, y1, z1, r, g, b, 255);
+        float x0 = ward.min().getX() - cx;
+        float y0 = ward.min().getY() - cy;
+        float z0 = ward.min().getZ() - cz;
+        float x1 = ward.max().getX() + 1 - cx;
+        float y1 = ward.max().getY() + 1 - cy;
+        float z1 = ward.max().getZ() + 1 - cz;
+        drawLineBox(lineBuffer, m, x0, y0, z0, x1, y1, z1);
     }
 
-    private static void addQuad(VertexConsumer buffer, PoseStack.Pose pose,
-            float x0, float y0, float z0,
-            float x1, float y1, float z1,
-            float x2, float y2, float z2,
-            float x3, float y3, float z3,
-            float nx, float ny, float nz,
-            int r, int g, int b, int a) {
-        buffer.addVertex(pose, x0, y0, z0).setColor(r,g,b,a).setUv(0,0).setOverlay(655360).setLight(0xF000F0).setNormal(pose, nx, ny, nz);
-        buffer.addVertex(pose, x1, y1, z1).setColor(r,g,b,a).setUv(1,0).setOverlay(655360).setLight(0xF000F0).setNormal(pose, nx, ny, nz);
-        buffer.addVertex(pose, x2, y2, z2).setColor(r,g,b,a).setUv(1,1).setOverlay(655360).setLight(0xF000F0).setNormal(pose, nx, ny, nz);
-        buffer.addVertex(pose, x3, y3, z3).setColor(r,g,b,a).setUv(0,1).setOverlay(655360).setLight(0xF000F0).setNormal(pose, nx, ny, nz);
+    private static void renderFace(VertexConsumer buffer, PoseStack.Pose pose, BlockPos block, Direction dir, float cx, float cy, float cz) {
+        float x = block.getX() - cx;
+        float y = block.getY() - cy;
+        float z = block.getZ() - cz;
+
+        float nx = (float) dir.getStepX();
+        float ny = (float) dir.getStepY();
+        float nz = (float) dir.getStepZ();
+
+        float[][] verts = getFaceVertices(x, y, z, dir);
+
+        buffer.addVertex(pose, verts[0][0], verts[0][1], verts[0][2]).setColor(R,G,B,A).setUv(0,0).setOverlay(655360).setLight(0xF000F0).setNormal(pose, nx, ny, nz);
+        buffer.addVertex(pose, verts[1][0], verts[1][1], verts[1][2]).setColor(R,G,B,A).setUv(1,0).setOverlay(655360).setLight(0xF000F0).setNormal(pose, nx, ny, nz);
+        buffer.addVertex(pose, verts[2][0], verts[2][1], verts[2][2]).setColor(R,G,B,A).setUv(1,1).setOverlay(655360).setLight(0xF000F0).setNormal(pose, nx, ny, nz);
+        buffer.addVertex(pose, verts[3][0], verts[3][1], verts[3][2]).setColor(R,G,B,A).setUv(0,1).setOverlay(655360).setLight(0xF000F0).setNormal(pose, nx, ny, nz);
+    }
+
+    private static float[][] getFaceVertices(float x, float y, float z, Direction dir) {
+        float x1 = x + 1, y1 = y + 1, z1 = z + 1;
+        return switch (dir) {
+            case DOWN  -> new float[][]{{x,y,z}, {x1,y,z}, {x1,y,z1}, {x,y,z1}};
+            case UP    -> new float[][]{{x,y1,z1}, {x1,y1,z1}, {x1,y1,z}, {x,y1,z}};
+            case NORTH -> new float[][]{{x1,y,z}, {x,y,z}, {x,y1,z}, {x1,y1,z}};
+            case SOUTH -> new float[][]{{x,y,z1}, {x1,y,z1}, {x1,y1,z1}, {x,y1,z1}};
+            case WEST  -> new float[][]{{x,y,z1}, {x,y,z}, {x,y1,z}, {x,y1,z1}};
+            case EAST  -> new float[][]{{x1,y,z}, {x1,y,z1}, {x1,y1,z1}, {x1,y1,z}};
+        };
     }
 
     private static void drawLineBox(VertexConsumer buffer, Matrix4f m,
-            float x0, float y0, float z0, float x1, float y1, float z1,
-            int r, int g, int b, int a) {
-        addLine(buffer, m, x0,y0,z0, x1,y0,z0, r,g,b,a);
-        addLine(buffer, m, x0,y0,z0, x0,y1,z0, r,g,b,a);
-        addLine(buffer, m, x0,y1,z0, x1,y1,z0, r,g,b,a);
-        addLine(buffer, m, x1,y0,z0, x1,y1,z0, r,g,b,a);
-
-        addLine(buffer, m, x0,y0,z1, x1,y0,z1, r,g,b,a);
-        addLine(buffer, m, x0,y0,z1, x0,y1,z1, r,g,b,a);
-        addLine(buffer, m, x0,y1,z1, x1,y1,z1, r,g,b,a);
-        addLine(buffer, m, x1,y0,z1, x1,y1,z1, r,g,b,a);
-
-        addLine(buffer, m, x0,y0,z0, x0,y0,z1, r,g,b,a);
-        addLine(buffer, m, x1,y0,z0, x1,y0,z1, r,g,b,a);
-        addLine(buffer, m, x0,y1,z0, x0,y1,z1, r,g,b,a);
-        addLine(buffer, m, x1,y1,z0, x1,y1,z1, r,g,b,a);
+            float x0, float y0, float z0, float x1, float y1, float z1) {
+        addLine(buffer, m, x0,y0,z0, x1,y0,z0);
+        addLine(buffer, m, x0,y0,z0, x0,y1,z0);
+        addLine(buffer, m, x0,y1,z0, x1,y1,z0);
+        addLine(buffer, m, x1,y0,z0, x1,y1,z0);
+        addLine(buffer, m, x0,y0,z1, x1,y0,z1);
+        addLine(buffer, m, x0,y0,z1, x0,y1,z1);
+        addLine(buffer, m, x0,y1,z1, x1,y1,z1);
+        addLine(buffer, m, x1,y0,z1, x1,y1,z1);
+        addLine(buffer, m, x0,y0,z0, x0,y0,z1);
+        addLine(buffer, m, x1,y0,z0, x1,y0,z1);
+        addLine(buffer, m, x0,y1,z0, x0,y1,z1);
+        addLine(buffer, m, x1,y1,z0, x1,y1,z1);
     }
 
     private static void addLine(VertexConsumer buffer, Matrix4f m,
-            float x0, float y0, float z0, float x1, float y1, float z1,
-            int r, int g, int b, int a) {
-        buffer.addVertex(m, x0, y0, z0).setColor(r,g,b,a).setNormal(0, 1, 0);
-        buffer.addVertex(m, x1, y1, z1).setColor(r,g,b,a).setNormal(0, 1, 0);
+            float x0, float y0, float z0, float x1, float y1, float z1) {
+        buffer.addVertex(m, x0, y0, z0).setColor(R,G,B,255).setNormal(0, 1, 0);
+        buffer.addVertex(m, x1, y1, z1).setColor(R,G,B,255).setNormal(0, 1, 0);
     }
 }

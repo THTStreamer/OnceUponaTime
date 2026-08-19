@@ -34,7 +34,7 @@ public record WardBoundaryPacket(
         return TYPE;
     }
 
-    public record WardEntry(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, UUID owner) {
+    public record WardEntry(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, UUID owner, List<BlockPos> interiorPositions) {
         public static final StreamCodec<RegistryFriendlyByteBuf, WardEntry> STREAM_CODEC = new StreamCodec<>() {
             @Override
             public WardEntry decode(RegistryFriendlyByteBuf buf) {
@@ -45,7 +45,15 @@ public record WardBoundaryPacket(
                 int maxY = buf.readVarInt();
                 int maxZ = buf.readVarInt();
                 UUID owner = new UUID(buf.readLong(), buf.readLong());
-                return new WardEntry(minX, minY, minZ, maxX, maxY, maxZ, owner);
+                int count = buf.readVarInt();
+                List<BlockPos> positions = new ArrayList<>(count);
+                for (int i = 0; i < count; i++) {
+                    positions.add(new BlockPos(
+                            minX + buf.readShort(),
+                            minY + buf.readShort(),
+                            minZ + buf.readShort()));
+                }
+                return new WardEntry(minX, minY, minZ, maxX, maxY, maxZ, owner, positions);
             }
 
             @Override
@@ -58,11 +66,21 @@ public record WardBoundaryPacket(
                 buf.writeVarInt(entry.maxZ);
                 buf.writeLong(entry.owner.getMostSignificantBits());
                 buf.writeLong(entry.owner.getLeastSignificantBits());
+                buf.writeVarInt(entry.interiorPositions.size());
+                for (BlockPos pos : entry.interiorPositions) {
+                    buf.writeShort(pos.getX() - entry.minX);
+                    buf.writeShort(pos.getY() - entry.minY);
+                    buf.writeShort(pos.getZ() - entry.minZ);
+                }
             }
         };
 
         public WardBoundary toBoundary() {
-            return new WardBoundary(new BlockPos(minX, minY, minZ), new BlockPos(maxX, maxY, maxZ), owner);
+            return new WardBoundary(
+                    new BlockPos(minX, minY, minZ),
+                    new BlockPos(maxX, maxY, maxZ),
+                    owner,
+                    new HashSet<>(interiorPositions));
         }
     }
 
@@ -74,9 +92,5 @@ public record WardBoundaryPacket(
                 WardClientData.storeWard(packet.dimensionKey, entry.toBoundary());
             }
         });
-    }
-
-    public static WardBoundaryPacket fromServer(String dimensionKey, List<WardEntry> wards) {
-        return new WardBoundaryPacket(dimensionKey, wards);
     }
 }

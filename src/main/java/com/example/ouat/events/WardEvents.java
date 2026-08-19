@@ -65,31 +65,10 @@ public class WardEvents {
 
         if (wards.isEmpty()) return;
 
-        List<WardBoundaryPacket.WardEntry> entries = new ArrayList<>();
-        for (WardedBuilding ward : wards) {
-            Set<BlockPos> interior = ward.getInteriorAir();
-            if (interior.isEmpty()) continue;
-
-            int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
-            int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
-
-            for (BlockPos pos : interior) {
-                minX = Math.min(minX, pos.getX());
-                minY = Math.min(minY, pos.getY());
-                minZ = Math.min(minZ, pos.getZ());
-                maxX = Math.max(maxX, pos.getX());
-                maxY = Math.max(maxY, pos.getY());
-                maxZ = Math.max(maxZ, pos.getZ());
-            }
-
-            entries.add(new WardBoundaryPacket.WardEntry(
-                    minX, minY, minZ, maxX, maxY, maxZ, ward.getOwnerUUID()));
-        }
-
+        List<WardBoundaryPacket.WardEntry> entries = buildEntries(wards);
         if (entries.isEmpty()) return;
 
         WardBoundaryPacket packet = new WardBoundaryPacket(dimKey, entries);
-
         for (ServerPlayer player : level.players()) {
             PacketDistributor.sendToPlayer(player, packet);
         }
@@ -99,7 +78,15 @@ public class WardEvents {
         String dimKey = level.dimension().location().toString();
         WardSavedData wardData = WardSavedData.get(level);
         List<WardedBuilding> wards = wardData.getAllWards();
+        if (wards.isEmpty()) return;
 
+        List<WardBoundaryPacket.WardEntry> entries = buildEntries(wards);
+        if (!entries.isEmpty()) {
+            PacketDistributor.sendToPlayer(target, new WardBoundaryPacket(dimKey, entries));
+        }
+    }
+
+    private static List<WardBoundaryPacket.WardEntry> buildEntries(List<WardedBuilding> wards) {
         List<WardBoundaryPacket.WardEntry> entries = new ArrayList<>();
         for (WardedBuilding ward : wards) {
             Set<BlockPos> interior = ward.getInteriorAir();
@@ -107,7 +94,6 @@ public class WardEvents {
 
             int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
             int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
-
             for (BlockPos pos : interior) {
                 minX = Math.min(minX, pos.getX());
                 minY = Math.min(minY, pos.getY());
@@ -118,11 +104,9 @@ public class WardEvents {
             }
 
             entries.add(new WardBoundaryPacket.WardEntry(
-                    minX, minY, minZ, maxX, maxY, maxZ, ward.getOwnerUUID()));
+                    minX, minY, minZ, maxX, maxY, maxZ, ward.getOwnerUUID(),
+                    new ArrayList<>(interior)));
         }
-
-        if (!entries.isEmpty()) {
-            PacketDistributor.sendToPlayer(target, new WardBoundaryPacket(dimKey, entries));
-        }
+        return entries;
     }
 }

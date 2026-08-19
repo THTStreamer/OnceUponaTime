@@ -1,6 +1,5 @@
 package com.example.ouat.client;
 
-import com.example.ouat.OnceUponATime;
 import net.minecraft.core.BlockPos;
 
 import java.util.*;
@@ -24,5 +23,5 @@ public class WardClientData {
         return wardBoundaries.getOrDefault(dimensionKey, Collections.emptyList());
     }
 
-    public record WardBoundary(BlockPos min, BlockPos max, UUID owner) {}
+    public record WardBoundary(BlockPos min, BlockPos max, UUID owner, Set<BlockPos> interiorAir) {}
 }
