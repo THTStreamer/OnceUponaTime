@@ -1,3 +1,6 @@
 {
-  "parent": "minecraft:item/iron_sword"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "onceuponatime:item/dark_one_dagger"
+  }
 }
