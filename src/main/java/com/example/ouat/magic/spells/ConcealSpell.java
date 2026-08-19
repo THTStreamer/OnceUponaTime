@@ -4,14 +4,16 @@ import com.example.ouat.OnceUponATime;
 import com.example.ouat.data.ConcealmentSavedData;
 import com.example.ouat.data.PlayerSupernaturalData;
 import com.example.ouat.magic.Spell;
+import com.example.ouat.registry.ModParticles;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -40,12 +42,12 @@ public class ConcealSpell extends Spell {
         return true;
     }
 
-    public static boolean handleDoorClick(ServerPlayer player, ServerLevel level, BlockPos doorPos) {
+    public static boolean handleDoorClick(ServerPlayer player, ServerLevel level, BlockPos clickedDoorPos) {
         PlayerSupernaturalData data = player.getData(PlayerSupernaturalData.TYPE);
         if (!data.isConcealReady()) return false;
 
-        BlockState state = level.getBlockState(doorPos);
-        if (!(state.getBlock() instanceof DoorBlock)) {
+        BlockState clickedState = level.getBlockState(clickedDoorPos);
+        if (!(clickedState.getBlock() instanceof DoorBlock)) {
             player.sendSystemMessage(Component.literal("§cYou must target a door."));
             data.setConcealReady(false);
             return false;
@@ -53,134 +55,161 @@ public class ConcealSpell extends Spell {
 
         data.setConcealReady(false);
 
-        BlockPos roomCenter = findRoomBehindDoor(level, doorPos, state);
-        if (roomCenter == null) {
+        DoorBlock doorBlock = (DoorBlock) clickedState.getBlock();
+        DoubleBlockHalf clickedHalf = clickedState.getValue(DoorBlock.HALF);
+        BlockPos baseDoor = (clickedHalf == DoubleBlockHalf.LOWER) ? clickedDoorPos : clickedDoorPos.below();
+        BlockState baseState = level.getBlockState(baseDoor);
+        Direction facing = baseState.getValue(DoorBlock.FACING);
+
+        Set<BlockPos> interiorAir = new HashSet<>();
+        findInteriorAir(level, baseDoor, facing, interiorAir);
+
+        if (interiorAir.isEmpty()) {
             player.sendSystemMessage(Component.literal("§cNo room found behind that door."));
             return false;
         }
 
-        boolean success = concealRoom(player, level, doorPos, state, roomCenter);
-        if (success) {
-            player.sendSystemMessage(Component.literal("§5§lThe room has been concealed from sight."));
-            player.playSound(net.minecraft.sounds.SoundEvents.ENCHANTMENT_TABLE_USE, 1.0F, 0.5F);
-        }
-        return success;
-    }
-
-    private static BlockPos findRoomBehindDoor(ServerLevel level, BlockPos doorPos, BlockState doorState) {
-        Direction facing = doorState.getValue(DoorBlock.FACING);
-        DoubleBlockHalf half = doorState.getValue(DoorBlock.HALF);
-
-        BlockPos searchStart = (half == DoubleBlockHalf.LOWER) ? doorPos : doorPos.below();
-
-        int dx = 0, dz = 0;
-        switch (facing) {
-            case NORTH -> dz = 1;
-            case SOUTH -> dz = -1;
-            case EAST -> dx = -1;
-            case WEST -> dx = 1;
-        }
-
-        BlockPos behindDoor = searchStart.offset(dx, 0, dz);
-
-        Set<BlockPos> airBlocks = new HashSet<>();
-        Queue<BlockPos> queue = new LinkedList<>();
-        queue.add(behindDoor);
-        airBlocks.add(behindDoor);
-
-        int maxRoomSize = 500;
-        int count = 0;
-
-        while (!queue.isEmpty() && count < maxRoomSize) {
-            BlockPos current = queue.poll();
-            count++;
-
+        Set<BlockPos> shellBlocks = new HashSet<>();
+        for (BlockPos air : interiorAir) {
             for (Direction dir : Direction.values()) {
-                if (dir == Direction.UP || dir == Direction.DOWN) continue;
-                BlockPos neighbor = current.relative(dir);
-                if (!airBlocks.contains(neighbor) && level.getBlockState(neighbor).isAir()) {
-                    airBlocks.add(neighbor);
-                    queue.add(neighbor);
+                BlockPos neighbor = air.relative(dir);
+                if (!interiorAir.contains(neighbor)) {
+                    BlockState neighborState = level.getBlockState(neighbor);
+                    if (!neighborState.isAir() && !(neighborState.getBlock() instanceof DoorBlock)) {
+                        shellBlocks.add(neighbor);
+                    }
                 }
             }
         }
 
-        if (airBlocks.isEmpty()) return null;
+        shellBlocks.add(baseDoor);
+        shellBlocks.add(baseDoor.above());
 
-        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
-        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
-        for (BlockPos p : airBlocks) {
-            minX = Math.min(minX, p.getX());
-            minY = Math.min(minY, p.getY());
-            minZ = Math.min(minZ, p.getZ());
-            maxX = Math.max(maxX, p.getX());
-            maxY = Math.max(maxY, p.getY());
-            maxZ = Math.max(maxZ, p.getZ());
-        }
+        BlockPos roomCenter = findCenter(interiorAir);
 
-        return new BlockPos((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
-    }
-
-    private static boolean concealRoom(ServerPlayer player, ServerLevel level, BlockPos doorPos, BlockState doorState, BlockPos roomCenter) {
-        UUID ownerUUID = player.getUUID();
-        Direction facing = doorState.getValue(DoorBlock.FACING);
-        DoubleBlockHalf half = doorState.getValue(DoorBlock.HALF);
-
-        BlockPos baseDoor = (half == DoubleBlockHalf.LOWER) ? doorPos : doorPos.below();
-
-        BlockState wallBlock = findMatchingWallBlock(level, baseDoor);
+        int exitX = baseDoor.getX() + facing.getStepX() * 2;
+        int exitZ = baseDoor.getZ() + facing.getStepZ() * 2;
+        BlockPos exitPosition = new BlockPos(exitX, baseDoor.getY(), exitZ);
 
         Map<BlockPos, BlockState> originalBlocks = new LinkedHashMap<>();
         List<BlockPos> disguisedPositions = new ArrayList<>();
 
-        disguiseBlock(level, baseDoor, wallBlock, originalBlocks, disguisedPositions);
-        disguiseBlock(level, baseDoor.above(), wallBlock, originalBlocks, disguisedPositions);
-
-        int dx = 0, dz = 0;
-        switch (facing) {
-            case NORTH -> dz = 1;
-            case SOUTH -> dz = -1;
-            case EAST -> dx = -1;
-            case WEST -> dx = 1;
+        for (BlockPos shell : shellBlocks) {
+            BlockState currentState = level.getBlockState(shell);
+            if (currentState.isAir() || currentState.getBlock() instanceof DoorBlock) {
+                BlockState terrain = getTerrainBlock(level, shell, interiorAir);
+                originalBlocks.put(shell, currentState);
+                level.setBlockAndUpdate(shell, terrain);
+                disguisedPositions.add(shell);
+            } else {
+                BlockState terrain = getTerrainBlock(level, shell, interiorAir);
+                originalBlocks.put(shell, currentState);
+                level.setBlockAndUpdate(shell, terrain);
+                disguisedPositions.add(shell);
+            }
         }
 
-        disguiseBlock(level, baseDoor.offset(dx, 0, dz), wallBlock, originalBlocks, disguisedPositions);
-        disguiseBlock(level, baseDoor.offset(dx, 1, dz), wallBlock, originalBlocks, disguisedPositions);
-        disguiseBlock(level, baseDoor.offset(-dx, 0, -dz), wallBlock, originalBlocks, disguisedPositions);
-        disguiseBlock(level, baseDoor.offset(-dx, 1, -dz), wallBlock, originalBlocks, disguisedPositions);
-
-        disguiseBlock(level, baseDoor.offset(dz, 0, dx), wallBlock, originalBlocks, disguisedPositions);
-        disguiseBlock(level, baseDoor.offset(dz, 1, dx), wallBlock, originalBlocks, disguisedPositions);
-        disguiseBlock(level, baseDoor.offset(-dz, 0, -dx), wallBlock, originalBlocks, disguisedPositions);
-        disguiseBlock(level, baseDoor.offset(-dz, 1, -dx), wallBlock, originalBlocks, disguisedPositions);
+        for (BlockPos air : interiorAir) {
+            if (!disguisedPositions.contains(air)) {
+                BlockState current = level.getBlockState(air);
+                originalBlocks.put(air, current);
+                disguisedPositions.add(air);
+            }
+        }
 
         ConcealmentSavedData roomData = ConcealmentSavedData.get(level);
         ConcealmentSavedData.ConcealedRoom room = new ConcealmentSavedData.ConcealedRoom(
-                ownerUUID, baseDoor, roomCenter, originalBlocks, disguisedPositions);
-        roomData.addRoom(ownerUUID, room);
+                player.getUUID(), baseDoor, roomCenter, exitPosition,
+                originalBlocks, disguisedPositions);
+        roomData.addRoom(player.getUUID(), room);
 
+        addConcealmentEffects(level, roomCenter, shellBlocks.size() + interiorAir.size());
+
+        player.sendSystemMessage(Component.literal("§5§lThe building has been concealed from sight."));
         return true;
     }
 
-    private static void disguiseBlock(ServerLevel level, BlockPos pos, BlockState wallBlock,
-                                     Map<BlockPos, BlockState> originalBlocks, List<BlockPos> disguisedPositions) {
-        BlockState current = level.getBlockState(pos);
-        if (!current.isAir() && !(current.getBlock() instanceof DoorBlock)) return;
+    private static void findInteriorAir(ServerLevel level, BlockPos startDoor, Direction facing, Set<BlockPos> result) {
+        int dx = -facing.getStepX();
+        int dz = -facing.getStepZ();
+        BlockPos behindDoor = startDoor.offset(dx, 0, dz);
 
-        originalBlocks.put(pos, current);
-        level.setBlockAndUpdate(pos, wallBlock);
-        disguisedPositions.add(pos);
-    }
+        Queue<BlockPos> queue = new LinkedList<>();
+        queue.add(behindDoor);
+        result.add(behindDoor);
 
-    private static BlockState findMatchingWallBlock(ServerLevel level, BlockPos doorPos) {
-        for (Direction dir : Direction.values()) {
-            if (dir == Direction.UP || dir == Direction.DOWN) continue;
-            BlockPos neighbor = doorPos.relative(dir);
-            BlockState neighborState = level.getBlockState(neighbor);
-            if (!neighborState.isAir() && !(neighborState.getBlock() instanceof DoorBlock)) {
-                return neighborState;
+        int maxY = startDoor.getY() + 20;
+        int minY = startDoor.getY() - 5;
+        int maxBlocks = 1000;
+        int count = 0;
+
+        while (!queue.isEmpty() && count < maxBlocks) {
+            BlockPos current = queue.poll();
+            count++;
+
+            if (current.getY() < minY || current.getY() > maxY) continue;
+
+            for (Direction dir : Direction.values()) {
+                BlockPos neighbor = current.relative(dir);
+                if (!result.contains(neighbor) && neighbor.getY() >= minY && neighbor.getY() <= maxY) {
+                    BlockState state = level.getBlockState(neighbor);
+                    if (state.isAir() || state.getBlock() instanceof DoorBlock) {
+                        result.add(neighbor);
+                        queue.add(neighbor);
+                    }
+                }
             }
         }
-        return Blocks.STONE_BRICKS.defaultBlockState();
+    }
+
+    private static BlockPos findCenter(Set<BlockPos> positions) {
+        int sumX = 0, sumY = 0, sumZ = 0;
+        for (BlockPos p : positions) {
+            sumX += p.getX();
+            sumY += p.getY();
+            sumZ += p.getZ();
+        }
+        int size = positions.size();
+        return new BlockPos(sumX / size, sumY / size, sumZ / size);
+    }
+
+    private static BlockState getTerrainBlock(ServerLevel level, BlockPos pos, Set<BlockPos> interiorAir) {
+        for (Direction dir : Direction.Plane.HORIZONTAL) {
+            BlockPos neighbor = pos.relative(dir);
+            if (!interiorAir.contains(neighbor)) {
+                BlockState outside = level.getBlockState(neighbor);
+                if (!outside.isAir() && !(outside.getBlock() instanceof DoorBlock)) {
+                    return outside;
+                }
+            }
+        }
+
+        if (pos.getY() < 60) return Blocks.STONE.defaultBlockState();
+        if (pos.getY() < 64) return Blocks.DIRT.defaultBlockState();
+        return Blocks.GRASS_BLOCK.defaultBlockState();
+    }
+
+    private static void addConcealmentEffects(ServerLevel level, BlockPos center, int blockCount) {
+        level.playSound(null, center.getX(), center.getY(), center.getZ(), SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 2.0F, 0.5F);
+        level.playSound(null, center.getX(), center.getY(), center.getZ(), SoundEvents.SOUL_ESCAPE, SoundSource.PLAYERS, 1.5F, 0.8F);
+
+        int particleCount = Math.min(blockCount * 2, 200);
+        for (int i = 0; i < particleCount; i++) {
+            double x = center.getX() + (level.random.nextDouble() - 0.5) * 10;
+            double y = center.getY() + (level.random.nextDouble() - 0.5) * 5;
+            double z = center.getZ() + (level.random.nextDouble() - 0.5) * 10;
+            level.sendParticles(ModParticles.SMOKE_SOFT.get(), x, y, z, 1, 0, 0.05, 0, 0.02);
+        }
+    }
+
+    public static BlockPos getTeleportTarget(ServerPlayer player, ServerLevel level, ConcealmentSavedData.ConcealedRoom room) {
+        BlockPos playerPos = player.blockPosition();
+        boolean isInside = room.getInteriorAir().contains(playerPos);
+
+        if (isInside) {
+            return room.getExitPosition();
+        } else {
+            return room.getTeleportTarget();
+        }
     }
 }

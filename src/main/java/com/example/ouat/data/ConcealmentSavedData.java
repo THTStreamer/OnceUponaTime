@@ -7,7 +7,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.SavedData;
 
@@ -93,23 +92,34 @@ public class ConcealmentSavedData extends SavedData {
         private final UUID ownerUUID;
         private final BlockPos doorPos;
         private final BlockPos teleportTarget;
+        private final BlockPos exitPosition;
         private final Map<BlockPos, BlockState> originalBlocks;
         private final List<BlockPos> disguisedPositions;
+        private final Set<BlockPos> interiorAir;
 
-        public ConcealedRoom(UUID ownerUUID, BlockPos doorPos, BlockPos teleportTarget,
+        public ConcealedRoom(UUID ownerUUID, BlockPos doorPos, BlockPos teleportTarget, BlockPos exitPosition,
                              Map<BlockPos, BlockState> originalBlocks, List<BlockPos> disguisedPositions) {
             this.ownerUUID = ownerUUID;
             this.doorPos = doorPos;
             this.teleportTarget = teleportTarget;
+            this.exitPosition = exitPosition;
             this.originalBlocks = originalBlocks;
             this.disguisedPositions = disguisedPositions;
+            this.interiorAir = new HashSet<>();
+            for (Map.Entry<BlockPos, BlockState> entry : originalBlocks.entrySet()) {
+                if (entry.getValue().isAir()) {
+                    this.interiorAir.add(entry.getKey());
+                }
+            }
         }
 
         public UUID getOwnerUUID() { return ownerUUID; }
         public BlockPos getDoorPos() { return doorPos; }
         public BlockPos getTeleportTarget() { return teleportTarget; }
+        public BlockPos getExitPosition() { return exitPosition; }
         public Map<BlockPos, BlockState> getOriginalBlocks() { return originalBlocks; }
         public List<BlockPos> getDisguisedPositions() { return disguisedPositions; }
+        public Set<BlockPos> getInteriorAir() { return interiorAir; }
 
         public CompoundTag toTag(HolderLookup.Provider registries) {
             CompoundTag tag = new CompoundTag();
@@ -120,6 +130,9 @@ public class ConcealmentSavedData extends SavedData {
             tag.putInt("TeleX", teleportTarget.getX());
             tag.putInt("TeleY", teleportTarget.getY());
             tag.putInt("TeleZ", teleportTarget.getZ());
+            tag.putInt("ExitX", exitPosition.getX());
+            tag.putInt("ExitY", exitPosition.getY());
+            tag.putInt("ExitZ", exitPosition.getZ());
 
             ListTag blocksTag = new ListTag();
             for (Map.Entry<BlockPos, BlockState> entry : originalBlocks.entrySet()) {
@@ -149,6 +162,7 @@ public class ConcealmentSavedData extends SavedData {
             UUID owner = tag.getUUID("Owner");
             BlockPos door = new BlockPos(tag.getInt("DoorX"), tag.getInt("DoorY"), tag.getInt("DoorZ"));
             BlockPos tele = new BlockPos(tag.getInt("TeleX"), tag.getInt("TeleY"), tag.getInt("TeleZ"));
+            BlockPos exit = new BlockPos(tag.getInt("ExitX"), tag.getInt("ExitY"), tag.getInt("ExitZ"));
 
             var blockGetter = registries.lookupOrThrow(Registries.BLOCK);
 
@@ -168,7 +182,7 @@ public class ConcealmentSavedData extends SavedData {
                 disguised.add(new BlockPos(dTag.getInt("X"), dTag.getInt("Y"), dTag.getInt("Z")));
             }
 
-            return new ConcealedRoom(owner, door, tele, origBlocks, disguised);
+            return new ConcealedRoom(owner, door, tele, exit, origBlocks, disguised);
         }
     }
 }
