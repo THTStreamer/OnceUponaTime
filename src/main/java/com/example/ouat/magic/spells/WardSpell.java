@@ -52,7 +52,6 @@ public class WardSpell extends Spell {
         if (hitState.isAir()) {
             candidates.add(hitPos);
         }
-
         for (BlockPos neighbor : List.of(
                 hitPos.above(), hitPos.below(),
                 hitPos.north(), hitPos.south(),
@@ -67,17 +66,29 @@ public class WardSpell extends Spell {
             return false;
         }
 
+        BlockPos playerEye = BlockPos.containing(player.getEyePosition());
+        BlockPos playerFeet = player.blockPosition();
+
         BlockPos doorPos = null;
         Set<BlockPos> bestInterior = null;
-        int bestEnclosure = -1;
+        double bestScore = -Double.MAX_VALUE;
 
         for (BlockPos candidate : candidates) {
             Set<BlockPos> interior = floodFillAir(level, candidate, MAX_WARD_SIZE);
             if (interior.size() < MIN_WARD_SIZE) continue;
 
-            int enclosure = computeEnclosure(level, interior);
-            if (enclosure > bestEnclosure) {
-                bestEnclosure = enclosure;
+            double density = (double) computeEnclosure(level, interior) / interior.size();
+            boolean playerInside = interior.contains(playerEye) || interior.contains(playerFeet);
+
+            double score;
+            if (playerInside) {
+                score = 1000.0 + density;
+            } else {
+                score = density;
+            }
+
+            if (score > bestScore) {
+                bestScore = score;
                 bestInterior = interior;
                 doorPos = candidate;
             }
