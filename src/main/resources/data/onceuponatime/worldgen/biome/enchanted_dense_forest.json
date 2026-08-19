@@ -33,7 +33,7 @@
       {"type": "minecraft:pig", "weight": 10, "minCount": 4, "maxCount": 4},
       {"type": "minecraft:chicken", "weight": 10, "minCount": 4, "maxCount": 4},
       {"type": "minecraft:cow", "weight": 8, "minCount": 4, "maxCount": 4},
-      {"type": "minecraft:onceuponatime:forest_fairy", "weight": 8, "minCount": 1, "maxCount": 3}
+      {"type": "onceuponatime:forest_fairy", "weight": 8, "minCount": 1, "maxCount": 3}
     ],
     "ambient": [
       {"type": "minecraft:bat", "weight": 10, "minCount": 8, "maxCount": 8}
