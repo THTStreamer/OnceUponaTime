@@ -12,7 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -22,7 +21,7 @@ import java.util.*;
 public class WardSpell extends Spell {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(OnceUponATime.MOD_ID, "ward");
 
-    private static final int MAX_WARD_SIZE = 128;
+    private static final int MAX_WARD_SIZE = 256;
     private static final int MIN_WARD_SIZE = 2;
 
     public WardSpell() {
@@ -39,7 +38,7 @@ public class WardSpell extends Spell {
 
         ServerLevel level = player.serverLevel();
 
-        HitResult hitResult = player.pick(5.0, 0.0F, false);
+        HitResult hitResult = player.pick(10.0, 0.0F, false);
         if (hitResult.getType() != HitResult.Type.BLOCK) {
             player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§cLook at a doorway or entrance to set the ward."));
             return false;
@@ -49,39 +48,53 @@ public class WardSpell extends Spell {
         BlockPos hitPos = blockHit.getBlockPos();
         BlockState hitState = level.getBlockState(hitPos);
 
-        BlockPos doorPos;
+        List<BlockPos> candidates = new ArrayList<>();
         if (hitState.isAir()) {
-            doorPos = hitPos;
-        } else {
-            doorPos = null;
-            for (BlockPos neighbor : List.of(
-                    hitPos.above(), hitPos.below(),
-                    hitPos.north(), hitPos.south(),
-                    hitPos.east(), hitPos.west())) {
-                if (level.getBlockState(neighbor).isAir()) {
-                    doorPos = neighbor;
-                    break;
-                }
-            }
-            if (doorPos == null) {
-                player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§cLook at an open doorway or entrance (need an air block nearby)."));
-                return false;
+            candidates.add(hitPos);
+        }
+
+        for (BlockPos neighbor : List.of(
+                hitPos.above(), hitPos.below(),
+                hitPos.north(), hitPos.south(),
+                hitPos.east(), hitPos.west())) {
+            if (level.getBlockState(neighbor).isAir()) {
+                candidates.add(neighbor);
             }
         }
 
-        Set<BlockPos> interiorAir = floodFillAir(level, doorPos, MAX_WARD_SIZE);
-        if (interiorAir.size() < MIN_WARD_SIZE) {
+        if (candidates.isEmpty()) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§cLook at an open doorway or entrance (need an air block nearby)."));
+            return false;
+        }
+
+        BlockPos doorPos = null;
+        Set<BlockPos> bestInterior = null;
+        int bestEnclosure = -1;
+
+        for (BlockPos candidate : candidates) {
+            Set<BlockPos> interior = floodFillAir(level, candidate, MAX_WARD_SIZE);
+            if (interior.size() < MIN_WARD_SIZE) continue;
+
+            int enclosure = computeEnclosure(level, interior);
+            if (enclosure > bestEnclosure) {
+                bestEnclosure = enclosure;
+                bestInterior = interior;
+                doorPos = candidate;
+            }
+        }
+
+        if (doorPos == null || bestInterior == null) {
             player.sendSystemMessage(net.minecraft.network.chat.Component.literal("§cInterior too small. Needs at least " + MIN_WARD_SIZE + " air blocks."));
             return false;
         }
 
+        Set<BlockPos> interiorAir = bestInterior;
         Set<BlockPos> protectedPositions = computeProtectedPositions(level, interiorAir);
 
         WardedBuilding ward = new WardedBuilding(player.getUUID(), doorPos, interiorAir, protectedPositions);
         WardSavedData wardData = WardSavedData.get(level);
         wardData.addWard(player.getUUID(), ward);
 
-        // Brief confirmation: particles only at the doorway
         level.sendParticles(ParticleTypes.ENCHANT,
                 doorPos.getX() + 0.5, doorPos.getY() + 0.5, doorPos.getZ() + 0.5,
                 30, 0.3, 0.5, 0.3, 0.5);
@@ -91,13 +104,27 @@ public class WardSpell extends Spell {
         onSuccessfulCast(player, 2);
         shiftAlignment(player, 3);
 
-        // Sync boundaries to nearby players
         WardEvents.syncWardBoundaries(level);
 
         player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
                 "§a§lWard established! " + interiorAir.size() + " blocks protected."));
 
         return true;
+    }
+
+    private int computeEnclosure(ServerLevel level, Set<BlockPos> interior) {
+        int solidNeighbors = 0;
+        for (BlockPos pos : interior) {
+            for (BlockPos neighbor : List.of(
+                    pos.above(), pos.below(),
+                    pos.north(), pos.south(),
+                    pos.east(), pos.west())) {
+                if (!level.getBlockState(neighbor).isAir()) {
+                    solidNeighbors++;
+                }
+            }
+        }
+        return solidNeighbors;
     }
 
     private Set<BlockPos> floodFillAir(ServerLevel level, BlockPos start, int maxBlocks) {
