@@ -79,6 +79,14 @@ public class WardSavedData extends SavedData {
         return false;
     }
 
+    public List<WardedBuilding> getAllWards() {
+        List<WardedBuilding> all = new ArrayList<>();
+        for (List<WardedBuilding> wards : playerWards.values()) {
+            all.addAll(wards);
+        }
+        return all;
+    }
+
     public static WardSavedData get(ServerLevel level) {
         return level.getDataStorage().computeIfAbsent(
                 new SavedData.Factory<>(WardSavedData::new, WardSavedData::load),
