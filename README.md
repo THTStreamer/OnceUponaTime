@@ -57,22 +57,44 @@ Roles define your character's place in the story. Each role is obtained through 
 
 ### Magic Alignment
 
-Every player has a magical alignment that affects which spells they can learn:
+Every player has a magical alignment that affects which spells they can learn. Your alignment is an integer from **-100** (pure Dark) to **+100** (pure Light), recomputing automatically:
 
-| Alignment | Description |
-|-----------|-------------|
-| **Light** | Healing, protection, and hope spells |
-| **Dark** | Curses, corruption, and destruction spells |
-| **Neutral** | Utility, teleportation, and transformation spells |
+| Alignment | Range | Description |
+|-----------|-------|-------------|
+| **Light** | +31 to +100 | Healing, protection, and hope spells |
+| **Neutral** | -30 to +30 | Utility, teleportation, and transformation spells |
+| **Dark** | -100 to -31 | Curses, corruption, and destruction spells |
+| **None** | — | No magic used yet |
+
+**Alignment Shifts:**
+
+| Action | Shift |
+|--------|-------|
+| Heart Ripping | -15 |
+| Curse of Corruption | -10 |
+| Memory Wipe | -5 |
+| Dark One's Power | -3 |
+| Dark Curse | -8 |
+| Heart Release | +10 |
+| Healing Light | +5 |
+| Heart Protection | +5 |
+| Ward Spell | +3 |
 
 ### Magic Proficiency
 
-Your proficiency (0–100) determines which spells you can learn. Gain proficiency by:
+Your proficiency (0–100) determines which spells you can learn. Each spell tracks its own proficiency independently, and your **overall proficiency** is the average of all known spell proficiencies.
 
-- Learning new spells
-- Casting Night Root Absorption on yourself
-- Removing curses with Memory Restoration
-- Completing story progression
+**Per-Spell Proficiency Tiers:**
+
+| Tier | Range | Food Cost |
+|------|-------|-----------|
+| **Novice** | 0–20 | 100% |
+| **Apprentice** | 21–40 | 90% |
+| **Adept** | 41–60 | 80% |
+| **Expert** | 61–80 | 70% |
+| **Master** | 81–100 | 60% |
+
+Gain proficiency by casting spells — each cast grants 2–3 points for that spell. Proficiency also increases when you remove curses or complete story progression.
 
 ---
 
@@ -126,6 +148,7 @@ Spells are learned by running `/ouat learn <spell_name>` and cast with `/ouat ca
 | **Memory Wipe** | 25 | 10 | Clears ALL learned spells from target, reduces proficiency by 20 |
 | **Squid Ink Paralysis** | 25 | 8 | Slowness 255, Mining Fatigue 255, Blindness, Weakness II, Levitation — complete paralysis |
 | **Curse of the Empty Heart** | 30 | 12 | Weakness, Mining Fatigue, Confusion, Blindness (40s). Forgets up to 3 spells |
+| **Ward** | 25 | 10 | Protection — look at an open doorway, cast to flood-fill interior. Blocks non-authorized players from breaking blocks inside. Owner can authorize others |
 
 ---
 
@@ -453,13 +476,15 @@ Copy-Item "build\libs\onceuponatime-1.0.0.jar" "C:\Users\<you>\curseforge\minecr
 
 ## Magic Comes with a Price
 
-Every spell costs **food points** when cast in Survival mode:
+Every spell costs **food points** when cast in Survival mode. The cost scales with your per-spell proficiency — the better you know a spell, the less food it costs:
 
-| Tier | Food Cost | Spells |
-|------|-----------|--------|
-| Low | 4–6 | Telekinesis, Light Blast, Conjuration |
-| Medium | 8–10 | Healing Light, Protection, Invisibility, Fireball, Teleportation |
-| High | 12–14 | Curses, Dark One's Power, True Love's Kiss, Spell of Shattered Sight |
+| Tier | Proficiency | Food Cost | Example |
+|------|------------|-----------|---------|
+| Novice | 0–20 | 100% base cost | Healing Light (6) |
+| Apprentice | 21–40 | 90% base cost | Healing Light (5) |
+| Adept | 41–60 | 80% base cost | Healing Light (5) |
+| Expert | 61–80 | 70% base cost | Healing Light (4) |
+| Master | 81–100 | 60% base cost | Healing Light (4) |
 
 **Creative Mode players cast for free** — the food cost check is skipped entirely.
 
