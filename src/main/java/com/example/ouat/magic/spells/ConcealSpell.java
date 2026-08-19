@@ -88,8 +88,8 @@ public class ConcealSpell extends Spell {
 
         BlockPos roomCenter = findCenter(interiorAir);
 
-        int exitX = baseDoor.getX() - facing.getStepX() * 3;
-        int exitZ = baseDoor.getZ() - facing.getStepZ() * 3;
+        int exitX = baseDoor.getX() + facing.getStepX() * 3;
+        int exitZ = baseDoor.getZ() + facing.getStepZ() * 3;
         BlockPos exitPosition = new BlockPos(exitX, baseDoor.getY(), exitZ);
 
         Map<BlockPos, BlockState> originalBlocks = new LinkedHashMap<>();
@@ -128,7 +128,7 @@ public class ConcealSpell extends Spell {
     private static void findInteriorAir(ServerLevel level, BlockPos startDoor, Direction facing, Set<BlockPos> result) {
         int dx = facing.getStepX();
         int dz = facing.getStepZ();
-        BlockPos start = startDoor.offset(dx, 0, dz);
+        BlockPos start = startDoor.offset(-dx, 0, -dz);
 
         BlockState startState = level.getBlockState(start);
         if (!startState.isAir() && !(startState.getBlock() instanceof DoorBlock)) {
